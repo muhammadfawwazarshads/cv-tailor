@@ -75,32 +75,32 @@ function Shell() {
         <Brand />
         <nav className="nav">
           <NavLink to="/leads">
-            <span className="ico violet"><Radar size={16} strokeWidth={2.2} /></span> Lowongan
+            <Radar size={18} strokeWidth={1.8} /><span className="lbl">Lowongan</span>
           </NavLink>
           <NavLink to="/applications">
-            <span className="ico sky"><Briefcase size={16} strokeWidth={2.2} /></span> Lamaran
+            <Briefcase size={18} strokeWidth={1.8} /><span className="lbl">Lamaran</span>
           </NavLink>
           <NavLink to="/forms">
-            <span className="ico coral"><FileSignature size={16} strokeWidth={2.2} /></span> Isi form
+            <FileSignature size={18} strokeWidth={1.8} /><span className="lbl">Isi form</span>
           </NavLink>
           <NavLink to="/profile">
-            <span className="ico mint"><UserRound size={16} strokeWidth={2.2} /></span> Profil CV
+            <UserRound size={18} strokeWidth={1.8} /><span className="lbl">Profil CV</span>
           </NavLink>
           <NavLink to="/personal">
-            <span className="ico amber"><IdCard size={16} strokeWidth={2.2} /></span> Data pribadi
+            <IdCard size={18} strokeWidth={1.8} /><span className="lbl">Data pribadi</span>
           </NavLink>
           {isAdmin && (
             <>
-              <div className="nav-label">{STANDALONE ? "Pengaturan" : "Pengaturan admin"}</div>
+              <div className="nav-label" role="separator" aria-label={STANDALONE ? "Pengaturan" : "Pengaturan admin"} />
               <NavLink to="/admin/providers">
-                <span className="ico slate"><Cpu size={16} strokeWidth={2.2} /></span> Provider AI
+                <Cpu size={18} strokeWidth={1.8} /><span className="lbl">Provider AI</span>
               </NavLink>
               <NavLink to="/admin/usage">
-                <span className="ico slate"><Activity size={16} strokeWidth={2.2} /></span> Pemakaian AI
+                <Activity size={18} strokeWidth={1.8} /><span className="lbl">Pemakaian AI</span>
               </NavLink>
               {!STANDALONE && (
                 <NavLink to="/admin/users">
-                  <span className="ico slate"><Users size={16} strokeWidth={2.2} /></span> Pengguna
+                  <Users size={18} strokeWidth={1.8} /><span className="lbl">Pengguna</span>
                 </NavLink>
               )}
             </>
