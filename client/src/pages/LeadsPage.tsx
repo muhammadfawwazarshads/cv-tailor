@@ -159,7 +159,7 @@ export function LeadsPage() {
             </div>
             <div className="toolbar-right">
               {(counts.new ?? 0) > 0 && (
-                <button className="btn sm primary" onClick={() => setDeck((leads ?? []).filter((l) => l.status === "new").sort((a, b) => rank(b) - rank(a)))}>
+                <button className="btn sm primary" data-tour="pilah" onClick={() => setDeck((leads ?? []).filter((l) => l.status === "new").sort((a, b) => rank(b) - rank(a)))}>
                   <Layers2 size={15} /> Pilah satu-satu
                 </button>
               )}

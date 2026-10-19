@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Compone
 import { useLocation, useNavigate } from "react-router-dom";
 import { APP_NAME } from "../brand";
 import { Mascot, type MascotPose } from "./Mascot";
-import { DemoBahan, DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
+import { DemoBahan, DemoConfirm, DemoSwipe, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
 
 /**
  * Guided product tour: a spotlight glides from one part of the app to the next while a card explains it.
@@ -54,8 +54,17 @@ const STEPS: Step[] = [
     chapter: 1,
     title: "Benang menyaring lowongannya",
     demo: DemoResults,
-    body: "Dua hal dicek: perusahaannya jelas atau tidak (ukuran, tanda bahaya seperti biaya rekrutmen), dan berapa banyak syaratnya yang memang ada di Bahan CV-mu. CV nanti disesuaikan, tapi tidak ditambah-tambah, jadi jumlah syarat yang kamu punya itu batas seberapa pas CV-nya bisa jadi. Hasilnya: Layak daftar, Coba aja, atau Lewati. Mau cepat? Tekan Pilah satu-satu dan geser kanan atau kiri.",
+    body: "Dua hal dicek: perusahaannya jelas atau tidak (ukuran, tanda bahaya seperti biaya rekrutmen), dan berapa banyak syaratnya yang memang ada di Bahan CV-mu. CV nanti disesuaikan, tapi tidak ditambah-tambah, jadi jumlah syarat yang kamu punya itu batas seberapa pas CV-nya bisa jadi. Hasilnya: Layak daftar, Coba aja, atau Lewati.",
     place: "top",
+  },
+  {
+    route: "/leads",
+    target: '[data-tour="pilah"]',
+    chapter: 1,
+    title: "Pilah satu-satu, geser saja",
+    demo: DemoSwipe,
+    body: "Banyak lowongan baru? Tekan Pilah satu-satu. Geser kanan untuk simpan buat dijahit, geser kiri untuk lewati, dan Benang kasih pendapatnya di tiap kartu. Yang disimpan masuk tab Disimpan, siap dijadikan lamaran.",
+    place: "bottom",
   },
   {
     route: "/applications",

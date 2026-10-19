@@ -239,6 +239,67 @@ export function DemoResults() {
   );
 }
 
+const SWIPES = [
+  { role: "DevOps Engineer", co: "PT Nusantara Digital", rec: "Layak daftar", tone: "apply", cover: "5 dari 5 syarat ada di bahanmu", dir: 1 },
+  { role: "IT Support", co: "PT Karir Cepat", rec: "Lewati", tone: "skip", cover: "Minta biaya rekrutmen", dir: -1 },
+];
+
+/** Two swatches: the first swiped right and stamped JAHIT, the second swiped left and stamped LEWATI. */
+export function DemoSwipe() {
+  const t = useClock(5600);
+  const phase = (k: number) => {
+    const start = 700 + k * 2000;
+    const drag = prog(t, start, 700);
+    const fly = prog(t, start + 800, 350);
+    return { drag, fly, x: drag * 70 + fly * 260, gone: t > start + 1150 };
+  };
+  return (
+    <Win title="Pilah satu-satu" h={190}>
+      <div className="td-deck">
+        {SWIPES.map((s, k) => {
+          const p = phase(k);
+          if (p.gone) return null;
+          const shown = k === 0 || phase(0).gone;
+          return (
+            <div
+              key={s.role}
+              className={`td-swatch ${s.tone}`}
+              style={{
+                zIndex: SWIPES.length - k,
+                opacity: shown ? 1 - p.fly : 1,
+                transform: shown ? `translateX(${s.dir * p.x}px) rotate(${s.dir * (p.x / 14)}deg)` : "translateY(8px) scale(.95)",
+              }}
+            >
+              <span className={`td-stamp ${s.dir > 0 ? "keep" : "pass"}`} style={{ opacity: shown ? p.drag : 0 }}>
+                {s.dir > 0 ? "Jahit" : "Lewati"}
+              </span>
+              <b className="td-sw-rec">{s.rec}</b>
+              <div className="td-sw-role">{s.role}</div>
+              <div className="td-sw-co">{s.co}</div>
+              <div className="td-sw-cover">{s.cover}</div>
+            </div>
+          );
+        })}
+        {phase(1).gone ? (
+          <div className="td-deck-done">
+            <span>
+              <b>1</b> disimpan
+            </span>
+            <span>
+              <b>1</b> dilewati
+            </span>
+          </div>
+        ) : (
+          <div className="td-deck-btns" aria-hidden>
+            <span className={t > 2700 && t < 4000 ? "on" : ""}>✕</span>
+            <span className={`keep${t > 700 && t < 2000 ? " on" : ""}`}>✂</span>
+          </div>
+        )}
+      </div>
+    </Win>
+  );
+}
+
 export function DemoStats() {
   const t = useClock(3000);
   const stats = [
