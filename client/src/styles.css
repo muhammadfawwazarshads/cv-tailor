@@ -997,15 +997,24 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 @media (max-width: 600px) { .signin-top { padding: 16px; } .signin-main { justify-content: flex-start; padding-top: 12px; } }
 @media (prefers-reduced-motion: reduce) { .signin-perch, .signin-card, .signin-card.shake { animation: none; } }
 
-/* ---------- Welcome after sign-in ---------- */
-.welcome { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: var(--canvas); cursor: pointer; transition: opacity .5s ease; }
-.welcome.leaving { opacity: 0; pointer-events: none; }
+/* ---------- Welcome after sign-in: Benang stitches the user's CV to fit ---------- */
+.welcome { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: rgba(10, 13, 22, 1); cursor: pointer; transition: background-color .65s ease; }
+.welcome.phase-leave { background-color: rgba(10, 13, 22, 0); pointer-events: none; }
 .welcome-body { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; }
-.welcome-mascot { animation: signin-in .7s cubic-bezier(.22, 1, .36, 1) both; }
-.welcome h1 { margin-top: 6px; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; animation: signin-in .6s .25s cubic-bezier(.22, 1, .36, 1) both; }
-.welcome p { margin-top: 6px; color: var(--muted); font-size: 14px; animation: signin-in .6s .4s cubic-bezier(.22, 1, .36, 1) both; }
-/* A running stitch that sews itself across while the app loads behind */
-.welcome-stitch { width: 160px; height: 2px; margin-top: 26px; }
-.welcome-stitch i { display: block; height: 100%; width: 100%; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .6) 0 6px, transparent 6px 11px); animation: welcome-sew 2.1s .3s linear both; }
-@keyframes welcome-sew { from { width: 0; } }
-@media (prefers-reduced-motion: reduce) { .welcome-mascot, .welcome h1, .welcome p, .welcome-stitch i { animation: none; } }
+.welcome-stage { position: relative; width: 300px; height: 290px; animation: signin-in .6s cubic-bezier(.22, 1, .36, 1) both; }
+.welcome-sheet { width: 300px; height: 290px; overflow: visible; filter: drop-shadow(0 28px 44px rgba(0, 0, 0, .6)); transform-origin: 50% 50%; transition: transform .65s cubic-bezier(.65, 0, .35, 1), opacity .5s ease .15s; }
+.welcome-paper { fill: #f4f2ee; }
+.welcome-name { font: 600 11px var(--font); fill: #17142a; }
+.welcome-tag { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(.3) rotate(-20deg); transition: opacity .2s, transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+.phase-done .welcome-tag, .phase-leave .welcome-tag { opacity: 1; transform: rotate(-6deg); }
+.welcome-tag-text { font: 600 10px var(--font); fill: #f2f3f7; }
+.phase-done .welcome-sheet { animation: welcome-snug .5s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes welcome-snug { 40% { transform: scale(1.04) rotate(-1.2deg); } }
+.phase-leave .welcome-sheet { transform: scale(3.2); opacity: 0; }
+.welcome-mascot { position: absolute; right: -96px; bottom: -20px; transition: opacity .3s, transform .3s; }
+.welcome h1 { margin-top: 26px; font-size: 28px; font-weight: 600; letter-spacing: -0.03em; animation: signin-in .6s .2s cubic-bezier(.22, 1, .36, 1) both; }
+.welcome p { margin-top: 6px; max-width: 340px; color: var(--ink-2); font-size: 14px; line-height: 1.5; animation: signin-in .6s .35s cubic-bezier(.22, 1, .36, 1) both; }
+.welcome h1, .welcome p { transition: opacity .3s, transform .3s; }
+.phase-leave .welcome-mascot, .phase-leave h1, .phase-leave p { opacity: 0; transform: translateY(8px); }
+@media (max-width: 600px) { .welcome-stage, .welcome-sheet { width: 240px; height: 232px; } .welcome-mascot { right: -40px; } .welcome-mascot .mascot { width: 96px; height: auto; } }
+@media (prefers-reduced-motion: reduce) { .welcome-stage, .welcome h1, .welcome p, .phase-done .welcome-sheet { animation: none; } .welcome-sheet, .welcome-tag { transition: none; } }

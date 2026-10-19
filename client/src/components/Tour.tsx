@@ -15,9 +15,9 @@ type Step = { route?: string; target?: string; title: string; body: string; plac
 
 const STEPS: Step[] = [
   {
-    title: `Selamat datang di ${APP_NAME}`,
+    title: "Halo, aku Benang",
     demo: DemoFlow,
-    body: "Alurnya empat langkah: pilah lowongan, nilai kecocokan, buat CV dan email, lalu isi form perusahaan. Tur ini memakan kurang dari satu menit.",
+    body: `Di ${APP_NAME}, CV-mu dijahit ulang untuk tiap lowongan, seperti penjahit mengepas baju: diukur dulu, baru dipotong. Alurnya empat langkah, tur ini kurang dari satu menit.`,
   },
   {
     route: "/leads",

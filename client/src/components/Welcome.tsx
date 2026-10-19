@@ -1,22 +1,31 @@
 import { useEffect, useState } from "react";
+import { APP_NAME } from "../brand";
 import { Mascot, type MascotPose } from "./Mascot";
 
 /**
- * Short hello right after signing in: Benang rises in and waves, the greeting fades up, and a stitch
- * sews itself across as the progress line before the app is revealed. Click anywhere to skip.
+ * Hello right after signing in, told through the name: a needle pulls Benang's thread around a CV
+ * sheet with the user's name on it, stitching it "to fit", Benang cheers, and the sheet zooms toward
+ * the viewer to reveal the app. Click anywhere to skip.
  */
+const SEW_START = 0.5; // s
+const SEW_DUR = 1.9; // s
+// Running stitch just inside the sheet's edge, clockwise from the top-left corner.
+const STITCH = "M58 22 H182 Q190 22 190 30 V202 Q190 210 182 210 H58 Q50 210 50 202 V30 Q50 22 58 22";
+
 export function Welcome({ name, onDone }: { name: string; onDone: () => void }) {
-  const [pose, setPose] = useState<MascotPose>("wave");
-  const [leaving, setLeaving] = useState(false);
-  const first = (name || "").trim().split(/\s+/)[0];
-  const greeting = first ? `Halo, ${first}.` : "Halo.";
-  const hour = new Date().getHours();
-  const sub = hour < 11 ? "Pagi yang pas buat kirim lamaran." : hour < 15 ? "Siang ini, satu CV lagi yuk." : hour < 19 ? "Sore yang pas buat rapikan CV." : "Malam yang tenang buat siapkan lamaran.";
+  const [phase, setPhase] = useState<"sew" | "done" | "leave">("sew");
+  const full = (name || "").trim();
+  const first = full.split(/\s+/)[0];
 
   useEffect(() => {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const t1 = setTimeout(() => setPose("idle"), 1600);
-    const t2 = setTimeout(() => setLeaving(true), reduced ? 1200 : 2400);
+    if (reduced) {
+      setPhase("done");
+      const t = setTimeout(() => setPhase("leave"), 1600);
+      return () => clearTimeout(t);
+    }
+    const t1 = setTimeout(() => setPhase("done"), (SEW_START + SEW_DUR) * 1000);
+    const t2 = setTimeout(() => setPhase("leave"), 4100);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -24,22 +33,70 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
   }, []);
 
   useEffect(() => {
-    if (!leaving) return;
-    const t = setTimeout(onDone, 600);
+    if (phase !== "leave") return;
+    const t = setTimeout(onDone, 650);
     return () => clearTimeout(t);
-  }, [leaving, onDone]);
+  }, [phase, onDone]);
+
+  const pose: MascotPose = phase === "sew" ? "point-left" : "cheer";
 
   return (
-    <div className={`welcome${leaving ? " leaving" : ""}`} role="status" aria-live="polite" onClick={() => setLeaving(true)}>
+    <div className={`welcome phase-${phase}`} role="status" aria-live="polite" onClick={() => setPhase("leave")}>
       <div className="welcome-body">
-        <div className="welcome-mascot">
-          <Mascot size={150} pose={pose} />
+        <div className="welcome-stage">
+          <svg className="welcome-sheet" viewBox="0 0 240 232" aria-hidden>
+            <defs>
+              <linearGradient id="wl-needle" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#8b90a6" />
+                <stop offset="0.6" stopColor="#f4f5fa" />
+                <stop offset="1" stopColor="#c9cddc" />
+              </linearGradient>
+              <mask id="wl-sewn" maskUnits="userSpaceOnUse">
+                <path d={STITCH} pathLength={1} stroke="#fff" strokeWidth="8" fill="none" strokeDasharray="1 3" strokeDashoffset="1">
+                  <animate attributeName="stroke-dashoffset" from="1" to="0" begin={`${SEW_START}s`} dur={`${SEW_DUR}s`} fill="freeze" calcMode="spline" keySplines="0.45 0 0.55 1" keyTimes="0;1" />
+                </path>
+              </mask>
+            </defs>
+
+            {/* the CV sheet */}
+            <rect className="welcome-paper" x="40" y="12" width="160" height="208" rx="10" />
+            <circle cx="70" cy="50" r="12" fill="#ddd6f3" />
+            <text x="90" y="47" className="welcome-name">
+              {full || "CV kamu"}
+            </text>
+            <rect x="90" y="53" width="56" height="5" rx="2.5" fill="#d9d6e3" />
+            {[78, 90, 102, 124, 136, 148, 170, 182, 194].map((y, k) => (
+              <rect key={y} x="58" y={y} width={[124, 104, 116, 124, 96, 112, 124, 88, 108][k]} height="5" rx="2.5" fill={k % 3 === 0 ? "#cfc9e0" : "#e4e1ec"} />
+            ))}
+
+            {/* Benang's thread, revealed behind the needle */}
+            <path d={STITCH} mask="url(#wl-sewn)" fill="none" stroke="#a35fec" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="7 5" opacity="0">
+              <animate attributeName="opacity" values="0;1" begin={`${SEW_START}s`} dur="0.05s" fill="freeze" />
+            </path>
+
+            {/* the needle rides the stitch line, pointing where it goes */}
+            <g opacity="0">
+              <animate attributeName="opacity" values="0;1" begin={`${SEW_START}s`} dur="0.12s" fill="freeze" />
+              <animate attributeName="opacity" values="1;0" begin={`${SEW_START + SEW_DUR}s`} dur="0.25s" fill="freeze" />
+              <animateMotion path={STITCH} begin={`${SEW_START}s`} dur={`${SEW_DUR}s`} rotate="auto" fill="freeze" calcMode="spline" keySplines="0.45 0 0.55 1" keyTimes="0;1" keyPoints="0;1" />
+              <path d="M-22 -1.8 L5 -0.7 L10 0 L5 0.7 L-22 1.8 Q-24 0 -22 -1.8 Z" fill="url(#wl-needle)" stroke="#5b6075" strokeWidth="0.4" />
+              <ellipse cx="-18.5" cy="0" rx="2.4" ry="0.8" fill="#0a0d16" />
+            </g>
+
+            {/* a small "pas" tag sewn on once the stitch closes */}
+            <g className="welcome-tag">
+              <rect x="146" y="196" width="46" height="20" rx="10" fill="#0a0d16" />
+              <text x="169" y="210" textAnchor="middle" className="welcome-tag-text">
+                pas ✓
+              </text>
+            </g>
+          </svg>
+          <div className="welcome-mascot">
+            <Mascot size={140} pose={pose} />
+          </div>
         </div>
-        <h1>{greeting}</h1>
-        <p>{sub}</p>
-        <div className="welcome-stitch" aria-hidden>
-          <i />
-        </div>
+        <h1>{first ? `Halo, ${first}.` : "Halo."}</h1>
+        <p>Aku Benang. Di {APP_NAME}, CV-mu dijahit ulang biar pas untuk tiap lowongan.</p>
       </div>
     </div>
   );

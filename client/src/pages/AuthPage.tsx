@@ -2,6 +2,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Brand, useAuth } from "../App";
 import { api, type User } from "../api";
+import { APP_NAME } from "../brand";
 import { Mascot, type MascotPose } from "../components/Mascot";
 import { ErrorBox, Field, Spinner, useAction } from "../components/ui";
 
@@ -131,7 +132,9 @@ export function AuthPage() {
             </p>
           )}
         </div>
-        <p className="signin-foot">Tempel lowongan, dapat CV yang pas. Ditulis dari pengalamanmu sendiri, tanpa mengarang.</p>
+        <p className="signin-foot">
+          {APP_NAME} menjahit ulang CV-mu agar pas untuk tiap lowongan, seperti penjahit mengepas baju. Benang yang bantu menjahitnya, dari pengalamanmu sendiri, tanpa mengarang.
+        </p>
       </main>
     </div>
   );
