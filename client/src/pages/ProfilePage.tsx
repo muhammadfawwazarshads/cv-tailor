@@ -1,6 +1,6 @@
-import { ArrowDown, ArrowUp, Check, FileUp, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Download, FileUp, Plus, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { api, formatDate, type Fact, type Profile } from "../api";
+import { api, formatDate, STANDALONE, type Fact, type Profile } from "../api";
 import { Busy, ErrorBox, Field, Loading, Spinner, useAction } from "../components/ui";
 
 type Exp = Profile["experience"][number];
@@ -382,6 +382,7 @@ export function ProfilePage() {
         </div>
 
         <FactsCard />
+        {STANDALONE && <BackupCard />}
       </div>
     </>
   );
@@ -524,6 +525,55 @@ function FactsCard() {
       ) : (
         <p className="muted">Belum ada. Fakta akan bertambah saat kamu menjawab pertanyaan di lamaran.</p>
       )}
+    </Section>
+  );
+}
+
+function BackupCard() {
+  const [msg, setMsg] = useState<string | null>(null);
+  const act = useAction();
+
+  async function doExport() {
+    const { exportData } = await import("../local/server");
+    const blob = new Blob([exportData()], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `cv-tailor-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    setMsg("File cadangan diunduh. API key tidak ikut disimpan.");
+  }
+
+  async function doImport(file: File) {
+    if (!confirm("Data di browser ini akan diganti isi file cadangan. Lanjutkan?")) return;
+    await act.run(async () => {
+      const { importData } = await import("../local/server");
+      importData(await file.text());
+      location.reload();
+    });
+  }
+
+  return (
+    <Section
+      title="Cadangan data"
+      hint="Semua data versi ini tersimpan di browser ini saja. Unduh cadangan secara berkala, dan pakai file yang sama untuk memindahkan data ke browser atau komputer lain."
+    >
+      <div className="row">
+        <button className="btn dark sm" type="button" onClick={doExport}>
+          <Download size={15} /> Unduh cadangan
+        </button>
+        <label className="btn sm" style={{ position: "relative" }}>
+          <Upload size={15} /> Pulihkan dari file
+          <input
+            type="file"
+            accept="application/json,.json"
+            style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }}
+            onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])}
+          />
+        </label>
+      </div>
+      {msg && <div className="alert ok">{msg}</div>}
+      <ErrorBox error={act.error} />
     </Section>
   );
 }

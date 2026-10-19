@@ -16,7 +16,8 @@
     "build:server": "tsc -p tsconfig.server.json",
     "start": "node --env-file-if-exists=.env dist-server/index.js",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.client.json --noEmit",
-    "smoke": "tsx scripts/smoke.ts"
+    "smoke": "tsx scripts/smoke.ts",
+    "build:standalone": "vite build --mode standalone && node scripts/rename-standalone.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",
@@ -48,6 +49,7 @@
     "react-router-dom": "^7.18.4",
     "tsx": "^4.23.15",
     "typescript": "5.9",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vite-plugin-singlefile": "^2.3.4"
   }
 }

@@ -9,3 +9,4 @@ scripts/tmp
 data-ci
 smoke-output
 server.log
+dist-standalone

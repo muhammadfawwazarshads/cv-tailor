@@ -70,6 +70,19 @@ Lalu tambahkan provider bertipe **Mock**. Hasilnya tidak ditulis ulang oleh AI, 
 
 Urutkan provider dengan tombol panah. Contoh pola yang umum: model utama di urutan 1, model cadangan dari vendor lain di urutan 2, dan model murah atau lokal di urutan 3.
 
+## Versi satu file HTML (tanpa server)
+
+```bash
+npm run build:standalone
+```
+
+Hasilnya `dist-standalone/cv-tailor.html`, satu file yang bisa langsung dibuka di browser (klik dua kali, tanpa install). Fiturnya sama untuk satu pengguna:
+
+- Data (profil, lamaran, versi CV, fakta, provider) tersimpan di `localStorage` browser tersebut. Gunakan **Profil CV → Cadangan data** untuk mengunduh dan memulihkan cadangan.
+- AI dipanggil langsung dari browser dengan API key milikmu, yang juga hanya tersimpan di browser itu. Anthropic, OpenAI, dan Gemini mendukung panggilan dari browser; sebagian endpoint (misalnya Azure) bisa menolak karena CORS.
+- **Unduh PDF** membuka dialog cetak browser dengan tampilan CV saja; pilih "Save as PDF" dengan kertas A4.
+- Tidak ada login, pengguna lain, atau batas pemakaian harian.
+
 ## Production
 
 ### GitHub Codespaces (paling cepat, tanpa akun hosting)

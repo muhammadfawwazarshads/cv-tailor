@@ -1,7 +1,7 @@
 import { ArrowLeft, Check, Download, ExternalLink, FileCode2, ListChecks, MessageSquareQuote, Minus, ShieldOff, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api, formatDate, STATUS_LABELS, type Application, type CvDocument, type Version } from "../api";
+import { api, formatDate, STANDALONE, STATUS_LABELS, type Application, type CvDocument, type Version } from "../api";
 import { CvPreview } from "../components/CvPreview";
 import { Busy, ErrorBox, Loading, useAction } from "../components/ui";
 
@@ -448,14 +448,23 @@ function CvTab({
 
       <aside className="side-panel">
         <div className="card stack">
-          <div className="row" style={{ flexWrap: "nowrap" }}>
-            <a className="btn dark grow" href={pdfUrl}>
-              <Download size={17} /> Unduh PDF
-            </a>
-            <a className="btn" href={`${pdfUrl}?inline=1`} target="_blank" rel="noreferrer" aria-label="Buka PDF di tab baru" title="Buka PDF di tab baru">
-              <ExternalLink size={17} />
-            </a>
-          </div>
+          {STANDALONE ? (
+            <>
+              <button className="btn dark block" onClick={() => printCv(v.data, app.company)} disabled={editing}>
+                <Download size={17} /> Unduh PDF
+              </button>
+              <p className="small muted">Pilih "Save as PDF" atau "Simpan sebagai PDF" di jendela cetak, ukuran kertas A4.</p>
+            </>
+          ) : (
+            <div className="row" style={{ flexWrap: "nowrap" }}>
+              <a className="btn dark grow" href={pdfUrl}>
+                <Download size={17} /> Unduh PDF
+              </a>
+              <a className="btn" href={`${pdfUrl}?inline=1`} target="_blank" rel="noreferrer" aria-label="Buka PDF di tab baru" title="Buka PDF di tab baru">
+                <ExternalLink size={17} />
+              </a>
+            </div>
+          )}
           {!editing && (
             <button
               className="btn ghost sm"
@@ -529,6 +538,18 @@ function CvTab({
       </aside>
     </div>
   );
+}
+
+/** Opens the browser print dialog with only the CV visible; the file name comes from the page title. */
+function printCv(cv: CvDocument, company: string) {
+  const prev = document.title;
+  document.title = ["CV", cv.name, company].filter(Boolean).join("_").replace(/[^\p{L}\p{N}_]+/gu, "_");
+  const restore = () => {
+    document.title = prev;
+    window.removeEventListener("afterprint", restore);
+  };
+  window.addEventListener("afterprint", restore);
+  window.print();
 }
 
 function Notes({ icon, title, items }: { icon: React.ReactNode; title: string; items?: string[] }) {

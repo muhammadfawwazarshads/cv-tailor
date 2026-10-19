@@ -65,7 +65,21 @@ export class ApiError extends Error {
   }
 }
 
+export const STANDALONE = __STANDALONE__;
+
 export async function api<T = any>(method: string, url: string, body?: unknown): Promise<T> {
+  if (__STANDALONE__) {
+    const { localApi, LocalError } = await import("./local/server");
+    try {
+      // Round-trip through JSON so callers never share objects with the local store.
+      const out = await localApi(method, url, body);
+      return JSON.parse(JSON.stringify(out)) as T;
+    } catch (e: any) {
+      if (e instanceof LocalError) throw new ApiError(e.message, e.status);
+      if (e?.name === "ZodError") throw new ApiError("Input tidak valid.", 400);
+      throw new ApiError(e?.message ?? String(e), 500);
+    }
+  }
   const isForm = body instanceof FormData;
   const res = await fetch(url, {
     method,

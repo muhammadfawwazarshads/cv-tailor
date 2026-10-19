@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, Plus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { api, formatDate, type Provider } from "../../api";
+import { api, formatDate, STANDALONE, type Provider } from "../../api";
 import { ErrorBox, Field, Loading, Modal, Spinner, Switch, useAction } from "../../components/ui";
 
 type Stat = { provider_id: string; calls: number; ok: number; avg_latency_ms: number | null; last_used: string | null };
@@ -108,6 +108,15 @@ export function ProvidersPage() {
           <Plus size={16} /> Tambah provider
         </button>
       </div>
+      {STANDALONE && (
+        <div className="alert info" style={{ marginBottom: 16 }}>
+          <span>
+            Versi ini memanggil AI langsung dari browser dan menyimpan API key di browser ini saja. Claude, OpenAI, dan Gemini bisa dipanggil
+            dari browser. Azure dan sebagian endpoint lain mungkin menolak panggilan dari browser (CORS); pakai versi server untuk itu. Untuk
+            mencoba tanpa API key, tambahkan provider tipe Mock.
+          </span>
+        </div>
+      )}
       <ErrorBox error={act.error} />
       {providers === null ? (
         <Loading />

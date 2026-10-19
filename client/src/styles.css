@@ -373,3 +373,16 @@ tr:last-child td { border-bottom: none; }
 .stat-card .k { color: var(--muted); font-size: 13px; font-weight: 600; }
 .stat-card .v { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin-top: 4px; }
 @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- Print: only the CV paper (used for "Unduh PDF" in the single-file version) ---------- */
+.paper .p-entry, .paper li { break-inside: avoid; }
+.paper .p-title { break-after: avoid; }
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body, #root { background: #fff !important; height: auto; }
+  .sidebar, .mobile-bar, .page-head, .crumb, .segmented, .side-panel, .no-print { display: none !important; }
+  .shell, .main, .cv-layout { display: block !important; padding: 0 !important; margin: 0 !important; gap: 0 !important; max-width: none !important; }
+  .desk { background: none !important; border: none !important; padding: 0 !important; border-radius: 0 !important; }
+  .paper-scroll { overflow: visible !important; }
+  .paper { box-shadow: none !important; border-radius: 0 !important; width: 210mm !important; max-width: none !important; min-width: 0 !important; margin: 0 !important; padding: 12mm 14mm !important; }
+}

@@ -1,7 +1,7 @@
 import { Activity, Briefcase, Cpu, LogOut, Menu, Scissors, UserRound, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
-import { api, type User } from "./api";
+import { api, STANDALONE, type User } from "./api";
 import { Loading } from "./components/ui";
 import { ProvidersPage } from "./pages/admin/ProvidersPage";
 import { UsagePage } from "./pages/admin/UsagePage";
@@ -78,16 +78,18 @@ function Shell() {
           </NavLink>
           {isAdmin && (
             <>
-              <div className="nav-label">Pengaturan admin</div>
+              <div className="nav-label">{STANDALONE ? "Pengaturan" : "Pengaturan admin"}</div>
               <NavLink to="/admin/providers">
                 <Cpu size={18} /> Provider AI
               </NavLink>
               <NavLink to="/admin/usage">
                 <Activity size={18} /> Pemakaian AI
               </NavLink>
-              <NavLink to="/admin/users">
-                <Users size={18} /> Pengguna
-              </NavLink>
+              {!STANDALONE && (
+                <NavLink to="/admin/users">
+                  <Users size={18} /> Pengguna
+                </NavLink>
+              )}
             </>
           )}
         </nav>
@@ -95,11 +97,13 @@ function Shell() {
           <div className="avatar">{(user!.name || user!.email).slice(0, 1).toUpperCase()}</div>
           <div>
             <div className="who">{user!.name}</div>
-            <div className="sub">{isAdmin ? "Admin" : user!.email}</div>
+            <div className="sub">{STANDALONE ? "Data tersimpan di browser ini" : isAdmin ? "Admin" : user!.email}</div>
           </div>
-          <button className="icon-btn" onClick={logout} aria-label="Keluar" title="Keluar">
-            <LogOut size={17} />
-          </button>
+          {!STANDALONE && (
+            <button className="icon-btn" onClick={logout} aria-label="Keluar" title="Keluar">
+              <LogOut size={17} />
+            </button>
+          )}
         </div>
       </aside>
       <div>

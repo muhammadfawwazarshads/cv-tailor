@@ -78,7 +78,7 @@ export async function callProvider(p: ProviderConfig, req: LlmRequest, timeoutMs
     case "anthropic": {
       const json = await postJson(
         `${trimSlash(p.baseUrl || "https://api.anthropic.com")}/v1/messages`,
-        { "x-api-key": p.apiKey, "anthropic-version": "2023-06-01" },
+        { "x-api-key": p.apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
         {
           model: p.model,
           max_tokens: req.maxTokens,
