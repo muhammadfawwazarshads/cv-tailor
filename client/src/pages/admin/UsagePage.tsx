@@ -1,3 +1,4 @@
+import { Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, formatDate } from "../../api";
 import { ErrorBox, Loading, useAction } from "../../components/ui";
@@ -30,7 +31,10 @@ export function UsagePage() {
   return (
     <>
       <div className="page-head">
-        <div>
+        <span className="emblem" aria-hidden>
+          <Activity size={20} strokeWidth={1.8} />
+        </span>
+        <div className="grow">
           <h1>Pemakaian AI</h1>
           <p>Setiap percobaan ke provider tercatat, termasuk yang gagal lalu dialihkan ke provider berikutnya.</p>
         </div>

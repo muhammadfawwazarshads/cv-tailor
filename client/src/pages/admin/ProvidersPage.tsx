@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Cpu, Plus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { api, formatDate, STANDALONE, type Provider } from "../../api";
 import { ErrorBox, Field, Loading, Modal, Spinner, Switch, useAction } from "../../components/ui";
@@ -100,7 +100,10 @@ export function ProvidersPage() {
   return (
     <>
       <div className="page-head">
-        <div>
+        <span className="emblem" aria-hidden>
+          <Cpu size={20} strokeWidth={1.8} />
+        </span>
+        <div className="grow">
           <h1>Provider AI</h1>
           <p>Provider dicoba berurutan dari nomor 1. Kalau satu gagal, lambat, kena batas pemakaian, atau balasannya rusak, permintaan otomatis pindah ke berikutnya. API key disimpan terenkripsi.</p>
         </div>

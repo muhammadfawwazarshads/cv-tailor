@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Download, FileText, PenLine, Upload } from "lucide-react";
+import { Check, ChevronDown, Download, FileSignature, FileText, PenLine, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, downloadBase64, type FormPlan, type FormQuestion, type FormSlot, type PersonalData } from "../api";
@@ -89,7 +89,10 @@ export function FormsPage() {
   return (
     <>
       <div className="page-head">
-        <div>
+        <span className="emblem" aria-hidden>
+          <FileSignature size={20} strokeWidth={1.8} />
+        </span>
+        <div className="grow">
           <h1>Isi form</h1>
           <p>
             Unggah form data diri dari perusahaan (.docx). Yang sudah diketahui diisi otomatis dari profil dan jawaban tersimpan, sisanya ditanyakan

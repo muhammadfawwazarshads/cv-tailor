@@ -1,4 +1,4 @@
-import { Eraser, ImageUp, PenLine, Plus, Save, Trash2, X } from "lucide-react";
+import { Eraser, IdCard, ImageUp, PenLine, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api, formatDate, type PersonalData } from "../api";
 import { ErrorBox, Loading, useAction } from "../components/ui";
@@ -39,7 +39,10 @@ export function PersonalPage() {
   return (
     <>
       <div className="page-head">
-        <div>
+        <span className="emblem" aria-hidden>
+          <IdCard size={20} strokeWidth={1.8} />
+        </span>
+        <div className="grow">
           <h1>Data pribadi</h1>
           <p>Dipakai untuk mengisi form lamaran perusahaan. Isinya terkumpul sendiri dari jawabanmu saat mengisi form, dan bisa kamu ubah di sini.</p>
         </div>

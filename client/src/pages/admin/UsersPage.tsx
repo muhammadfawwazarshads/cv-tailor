@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../App";
 import { api, formatDate } from "../../api";
@@ -18,7 +19,10 @@ export function UsersPage() {
   return (
     <>
       <div className="page-head">
-        <div>
+        <span className="emblem" aria-hidden>
+          <Users size={20} strokeWidth={1.8} />
+        </span>
+        <div className="grow">
           <h1>Pengguna</h1>
           <p>Admin bisa mengatur provider AI dan melihat pemakaian. Data CV dan lamaran tiap pengguna tetap privat.</p>
         </div>
