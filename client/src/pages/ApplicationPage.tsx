@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, formatDate, STANDALONE, STATUS_LABELS, type Application, type CvDocument, type Version } from "../api";
 import { CvPreview } from "../components/CvPreview";
+import { Mascot } from "../components/Mascot";
 import { SewTrack, sewProgress, TapeMeasure } from "../components/Sewing";
 import { DraftsTab } from "./DraftsTab";
 import { Busy, ErrorBox, Loading, useAction } from "../components/ui";
@@ -207,6 +208,21 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
         <div>
           <h2>{a.verdict}</h2>
           <p>{a.summary}</p>
+          {a.questions.length > filled && (
+            <a
+              className="fit-ask"
+              href="#pertanyaan"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("pertanyaan")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              <Mascot size={34} pose="point-down" />
+              <span>
+                Benang punya <b>{a.questions.length - filled} pertanyaan</b> sebelum menjahit CV-mu
+              </span>
+            </a>
+          )}
           {a.focus.length > 0 && (
             <div className="chips">
               {a.focus.map((f, i) => (
@@ -219,56 +235,10 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
         </div>
       </section>
 
-      <div className="grid-2">
-        <div className="card">
-          <div className="card-head">
-            <h2>Yang sudah cocok</h2>
-            <span className="chip fit">{a.strengths.length}</span>
-          </div>
-          <ul className="evidence">
-            {a.strengths.map((s, i) => (
-              <li key={i}>
-                <span className="mark fit">
-                  <Check size={14} strokeWidth={3} />
-                </span>
-                <div>
-                  <b>{s.point}</b>
-                  {s.evidence && <div className="note">{s.evidence}</div>}
-                </div>
-              </li>
-            ))}
-            {!a.strengths.length && <li className="muted">Belum ada yang cocok jelas.</li>}
-          </ul>
-        </div>
-        <div className="card">
-          <div className="card-head">
-            <h2>Gap yang perlu disiapkan</h2>
-            <span className="chip gap">{a.gaps.length}</span>
-          </div>
-          <ul className="evidence">
-            {a.gaps.map((g, i) => (
-              <li key={i}>
-                <span className="mark gap">
-                  <Minus size={14} strokeWidth={3} />
-                </span>
-                <div>
-                  <div className="row" style={{ gap: 8 }}>
-                    <b>{g.point}</b>
-                    {g.severity === "high" && <span className="chip bad">syarat penting</span>}
-                  </div>
-                  {g.advice && <div className="note">{g.advice}</div>}
-                </div>
-              </li>
-            ))}
-            {!a.gaps.length && <li className="muted">Tidak ada gap besar.</li>}
-          </ul>
-        </div>
-      </div>
-
-      <div className="card stack-lg">
+      <div className="card stack-lg" id="pertanyaan">
         <div className="card-head" style={{ marginBottom: 0 }}>
           <div>
-            <h2>Beberapa hal yang perlu dipastikan</h2>
+            <h2>Sebelum dijahit, Benang mau tanya dulu</h2>
             <p>Jawab singkat. Jawaban "belum pernah" sama pentingnya, karena hal itu tidak akan diklaim di CV.</p>
           </div>
           {a.questions.length > 0 && (
@@ -362,6 +332,52 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
           </div>
         )}
       </div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-head">
+            <h2>Yang sudah cocok</h2>
+            <span className="chip fit">{a.strengths.length}</span>
+          </div>
+          <ul className="evidence">
+            {a.strengths.map((s, i) => (
+              <li key={i}>
+                <span className="mark fit">
+                  <Check size={14} strokeWidth={3} />
+                </span>
+                <div>
+                  <b>{s.point}</b>
+                  {s.evidence && <div className="note">{s.evidence}</div>}
+                </div>
+              </li>
+            ))}
+            {!a.strengths.length && <li className="muted">Belum ada yang cocok jelas.</li>}
+          </ul>
+        </div>
+        <div className="card">
+          <div className="card-head">
+            <h2>Gap yang perlu disiapkan</h2>
+            <span className="chip gap">{a.gaps.length}</span>
+          </div>
+          <ul className="evidence">
+            {a.gaps.map((g, i) => (
+              <li key={i}>
+                <span className="mark gap">
+                  <Minus size={14} strokeWidth={3} />
+                </span>
+                <div>
+                  <div className="row" style={{ gap: 8 }}>
+                    <b>{g.point}</b>
+                    {g.severity === "high" && <span className="chip bad">syarat penting</span>}
+                  </div>
+                  {g.advice && <div className="note">{g.advice}</div>}
+                </div>
+              </li>
+            ))}
+            {!a.gaps.length && <li className="muted">Tidak ada gap besar.</li>}
+          </ul>
+        </div>
+      </div>
+
     </div>
   );
 }

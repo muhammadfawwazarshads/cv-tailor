@@ -1,10 +1,25 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import type { CvDocument } from "../api";
+
+// A4 at 96 dpi; narrower columns shrink the whole page instead of cropping it
+const PAGE_W = 794;
 
 /** HTML preview that mirrors the PDF renderer's layout. */
 export function CvPreview({ cv }: { cv: CvDocument }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const fit = () => setZoom(Math.min(1, el.clientWidth / PAGE_W));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <div className="paper-scroll">
-      <article className="paper" aria-label="Pratinjau CV">
+    <div className="paper-scroll" ref={box}>
+      <article className="paper" aria-label="Pratinjau CV" style={{ zoom }}>
         <div className="p-name">{cv.name}</div>
         {cv.headline && <div className="p-headline">{cv.headline}</div>}
         {cv.contact.length > 0 && (
