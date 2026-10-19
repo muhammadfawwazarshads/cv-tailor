@@ -183,7 +183,7 @@ function Shell() {
             {user!.name || "Akun"}
           </NavLink>
         </div>
-        {tour && !welcoming && <Tour onClose={() => setTour(false)} />}
+        {tour && !welcoming && <Tour onClose={() => setTour(false)} isAdmin={isAdmin} />}
         <main className="main">
           <Routes>
             <Route path="/" element={<Navigate to="/applications" replace />} />

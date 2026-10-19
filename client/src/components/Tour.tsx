@@ -13,7 +13,7 @@ import { DemoBahan, DemoConfirm, DemoSwipe, DemoCopy, DemoFlow, DemoForm, DemoPa
  */
 // The four chapters of the flow; each step says which one it belongs to so the order reads as one story.
 const CHAPTERS = ["Siapkan bahan", "Ukur lowongan", "Pas & jahit CV", "Kirim & isi form"];
-type Step = { route?: string; target?: string; chapter?: number; title: string; body: string; place?: "bottom" | "top" | "right" | "left"; demo?: ComponentType };
+type Step = { admin?: boolean; route?: string; target?: string; chapter?: number; title: string; body: string; place?: "bottom" | "top" | "right" | "left"; demo?: ComponentType };
 
 const STEPS: Step[] = [
   {
@@ -102,6 +102,8 @@ const STEPS: Step[] = [
     place: "right",
   },
   {
+    // only admins can manage providers; everyone else uses the ones the admin connected
+    admin: true,
     target: '[data-tour="provider"]',
     title: "Sambungkan AI",
     demo: DemoProvider,
@@ -144,7 +146,8 @@ function pointAt(target: Rect, card: Rect): MascotPose {
   return dy < 0 ? "point-up" : "point-down";
 }
 
-export function Tour({ onClose }: { onClose: () => void }) {
+export function Tour({ onClose, isAdmin }: { onClose: () => void; isAdmin: boolean }) {
+  const steps = STEPS.filter((s) => isAdmin || !s.admin);
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [cardPos, setCardPos] = useState<{ left: number; top: number } | null>(null);
@@ -152,8 +155,8 @@ export function Tour({ onClose }: { onClose: () => void }) {
   const card = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const step = STEPS[i];
-  const last = i === STEPS.length - 1;
+  const step = steps[i];
+  const last = i === steps.length - 1;
 
   const [hide, setHide] = useState(tourHidden);
   const close = useCallback(() => {
@@ -291,7 +294,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
             <div className="tour-step">
               <span className="tour-chapter">{step.chapter != null ? `Langkah ${step.chapter + 1} · ${CHAPTERS[step.chapter]}` : ""}</span>{" "}
               <span className="tour-count">
-                {i + 1}/{STEPS.length}
+                {i + 1}/{steps.length}
               </span>
             </div>
             <h2>{step.title}</h2>
@@ -299,7 +302,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <div className="tour-progress" aria-hidden>
-          <i style={{ width: `${((i + 1) / STEPS.length) * 100}%` }} />
+          <i style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
         </div>
         <label className="tour-hide">
           <input type="checkbox" checked={hide} onChange={(e) => setHide(e.target.checked)} />
