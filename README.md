@@ -1,0 +1,136 @@
+# CV Tailor
+
+Aplikasi web untuk menyesuaikan CV ke setiap lowongan **tanpa mengarang pengalaman**.
+
+Alurnya meniru proses manual yang paling efektif:
+
+1. **Profil CV master.** Impor CV (PDF atau teks), AI mengubahnya jadi data terstruktur yang bisa diedit. Tulis semua pengalaman di sini.
+2. **Lamaran baru.** Tempel deskripsi pekerjaan (JD). AI menilai kecocokan (skor, kekuatan, gap) lalu mengajukan **pertanyaan konfirmasi**, misalnya "Pernah pakai Kubernetes beneran atau baru belajar?".
+3. **Jawab pertanyaan.** Jawaban bisa disimpan sebagai **fakta terkonfirmasi** yang dipakai lagi di lamaran berikutnya. Jawaban "belum pernah" membuat AI tidak mengklaim hal itu.
+4. **CV disesuaikan.** AI memilih, mengurutkan, dan menulis ulang isi CV untuk JD tersebut, plus catatan apa yang diubah, apa yang sengaja tidak diklaim, dan persiapan interview.
+5. **Revisi lewat instruksi** ("ganti jadi Technology Consultant", "Kubernetes hapus") atau edit manual. Setiap revisi tersimpan sebagai versi baru.
+6. **Unduh PDF** yang ATS-friendly: satu kolom, tanpa tabel, teks bisa dipilih, karakter aman untuk parser.
+
+Fitur lain:
+
+- **Multi-user** dengan login. Akun pertama otomatis jadi admin. Data CV dan lamaran tiap pengguna privat.
+- **Multi-provider AI dengan fallback otomatis**: Anthropic (Claude), OpenAI, Google Gemini, Azure OpenAI / AI Foundry, dan endpoint OpenAI-compatible (OpenRouter, Ollama, LM Studio, Groq, dst.). Provider dicoba sesuai urutan prioritas; kalau error, timeout, kena rate limit, atau balasannya tidak valid, sistem pindah ke provider berikutnya.
+- **API key terenkripsi** (AES-256-GCM) dan hanya ditampilkan dalam bentuk tersamar.
+- **Log pemakaian AI**: provider, model, tugas, status, durasi, dan token per panggilan, termasuk percobaan yang gagal.
+- **Batas pemakaian harian** per pengguna (bisa diatur).
+- **Pelacak status lamaran**: perlu konfirmasi, CV siap, sudah daftar, interview, offer, ditolak.
+
+## Stack
+
+| Bagian | Teknologi |
+|---|---|
+| Frontend | Vite, React, TypeScript, React Router |
+| Backend | Node.js, Express 5, TypeScript, Zod |
+| Database | PostgreSQL, atau PGlite (Postgres embedded) untuk development |
+| Auth | Cookie httpOnly + JWT (jose), password bcrypt |
+| PDF | pdfkit (render), unpdf (baca PDF upload) |
+
+## Menjalankan secara lokal
+
+Butuh Node.js 20 atau lebih baru.
+
+```bash
+npm install
+cp .env.example .env      # opsional
+npm run dev
+```
+
+Buka http://localhost:5173. Tanpa `DATABASE_URL`, data disimpan di PGlite pada folder `./data`, jadi tidak perlu install PostgreSQL.
+
+Langkah pertama setelah daftar (akun pertama = admin):
+
+1. Buka **Provider AI**, lalu tambahkan minimal satu provider beserta API key-nya. Klik **Tes** untuk memastikan koneksi.
+2. Buka **Profil CV**, impor CV lama, periksa hasilnya, lalu klik **Simpan profil**.
+3. Buka **Lamaran**, lalu tempel JD.
+
+### Mode demo tanpa API key
+
+```bash
+ENABLE_MOCK_LLM=true npm run dev
+```
+
+Lalu tambahkan provider bertipe **Mock**. Hasilnya tidak ditulis ulang oleh AI, tapi seluruh alur (analisis, pertanyaan, versi CV, PDF, fallback) bisa dicoba. Isi model `fail` untuk mensimulasikan provider yang gagal.
+
+## Contoh konfigurasi provider
+
+| Tipe | Model | Base URL | Catatan |
+|---|---|---|---|
+| Anthropic | mis. `claude-sonnet-5-5` | kosong | |
+| OpenAI | nama model dari dashboard OpenAI | kosong | |
+| Gemini | nama model dari Google AI Studio | kosong | |
+| Azure OpenAI / AI Foundry | **nama deployment** | `https://<resource>.openai.azure.com` | API version mis. `2024-10-21`, atau `v1` untuk endpoint `/openai/v1` |
+| OpenAI-compatible | nama model di server tsb. | mis. `https://openrouter.ai/api/v1`, `http://localhost:11434/v1` | API key opsional |
+
+Urutkan provider dengan tombol panah. Contoh pola yang umum: model utama di urutan 1, model cadangan dari vendor lain di urutan 2, dan model murah atau lokal di urutan 3.
+
+## Production
+
+### Docker Compose (app + PostgreSQL)
+
+```bash
+echo "APP_SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")" > .env
+docker compose up -d --build
+```
+
+Aplikasi berjalan di http://localhost:3000. Pasang reverse proxy dengan HTTPS (Nginx, Caddy, atau load balancer cloud) di depannya, karena cookie sesi diberi flag `Secure` di production.
+
+### Tanpa Docker
+
+```bash
+npm ci
+npm run build
+NODE_ENV=production APP_SECRET=... DATABASE_URL=postgres://... npm start
+```
+
+Migrasi database berjalan otomatis saat server start.
+
+### Variabel lingkungan
+
+Lihat `.env.example`. Yang penting:
+
+- `APP_SECRET` (wajib di production, min. 32 karakter): menandatangani sesi dan mengenkripsi API key. Jika diganti, semua pengguna logout dan API key harus dimasukkan ulang.
+- `ALLOW_REGISTRATION=false`: menutup pendaftaran publik setelah akun admin dibuat.
+- `DAILY_AI_LIMIT`: batas permintaan AI sukses per pengguna per 24 jam (0 = tanpa batas).
+- `LLM_TIMEOUT_MS`: batas waktu satu permintaan sebelum pindah ke provider berikutnya.
+
+## Pengujian
+
+```bash
+# Terminal 1
+ENABLE_MOCK_LLM=true DATA_DIR=./data-smoke PORT=3999 npm run dev:server
+# Terminal 2
+BASE_URL=http://localhost:3999 npm run smoke
+```
+
+Smoke test menjalankan seluruh alur lewat API: registrasi, hak akses admin, enkripsi API key, impor profil, analisis, jawaban dan fakta, CV, revisi, edit manual, PDF, isolasi data antar-pengguna, serta fallback dan pesan error saat semua provider gagal.
+
+`npm run typecheck` memeriksa tipe frontend dan backend.
+
+## Struktur
+
+```
+client/                 Frontend (Vite + React)
+  src/pages/            Lamaran, detail lamaran, profil, admin
+  src/components/       Pratinjau CV, komponen UI
+server/
+  index.ts              Express app
+  auth.ts               Registrasi, login, sesi, manajemen pengguna
+  db/                   Koneksi PostgreSQL/PGlite + migrasi
+  llm/                  Adapter provider + router fallback
+  ai/                   Prompt, layanan AI, mock
+  pdf/                  Renderer PDF ATS-friendly
+  routes/               Profil, fakta, lamaran, admin
+  shared/schemas.ts     Skema Zod yang dipakai server dan client
+scripts/smoke.ts        Tes end-to-end
+```
+
+## Prinsip kejujuran
+
+Prompt AI memuat aturan yang tidak boleh dilanggar: tidak menambah pengalaman, tanggal, angka, tools, atau sertifikasi yang tidak ada di profil, fakta terkonfirmasi, atau jawaban pengguna; tidak memakai placeholder metrik; tidak melebih-lebihkan kedalaman ("microservices", "led"); dan menjaga kerahasiaan klien. Tetap periksa setiap CV sebelum dikirim, karena kamu yang akan ditanya saat interview.
+
+Font Carlito di `server/assets/fonts` berlisensi SIL Open Font License 1.1 (lihat `OFL.txt`).

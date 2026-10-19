@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://cvtailor:cvtailor@db:5432/cvtailor
+      APP_SECRET: ${APP_SECRET:?Set APP_SECRET in .env (min. 32 characters)}
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      DAILY_AI_LIMIT: ${DAILY_AI_LIMIT:-50}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cvtailor
+      POSTGRES_PASSWORD: cvtailor
+      POSTGRES_DB: cvtailor
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cvtailor"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:

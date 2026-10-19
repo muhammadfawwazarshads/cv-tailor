@@ -1,0 +1,8 @@
+node_modules
+dist-client
+dist-server
+data
+data-*
+scripts/tmp
+.env
+*.log

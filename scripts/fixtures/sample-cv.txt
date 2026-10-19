@@ -1,0 +1,39 @@
+Alex Pratama
+Software Engineer
++62 812 0000 0000 | alex.pratama@example.com | https://alexpratama.dev | Jakarta, Indonesia
+
+Summary
+Computer Science graduate and software engineer with experience building backend services in Go and Node.js, deploying Dockerized applications to AWS, and building internal approval workflows for enterprise clients.
+
+Skills
+Backend: Go, Node.js, Python, REST API, PostgreSQL, Redis
+Cloud & DevOps: AWS (EC2, RDS, S3), Docker, GitHub Actions, Nginx, Linux
+Frontend: React, Next.js, TypeScript
+Tools: Git, Jira, Figma, Excel
+
+Work Experience
+Nusantara Consulting - Jakarta
+Technology Consultant
+Mar 2025 - Present
+- Built an approval workflow for budget submissions used by 300 employees, replacing email and spreadsheet tracking.
+- Developed REST APIs in Node.js with PostgreSQL and deployed them to AWS using GitHub Actions.
+- Configured Nginx as a reverse proxy across development, staging, and production environments.
+
+Kopi Logistics
+Backend Engineer Intern
+Jul 2024 - Feb 2025
+- Built Go services for warehouse inventory tracking with Redis caching, reducing lookup time from 2 seconds to 200 ms.
+- Migrated three legacy servers to AWS EC2 and RDS.
+
+Education
+Universitas Contoh - Bandung
+Bachelor of Computer Science
+Aug 2020 - Jul 2024
+- Thesis: Real-time inventory anomaly detection with machine learning.
+
+Projects
+Pantau Banjir - Python, FastAPI, Flutter
+- Built a flood alert app that sends notifications from public river sensor data to 1,000+ users.
+
+Certifications
+AWS Certified Cloud Practitioner
