@@ -1,4 +1,4 @@
-import { Briefcase, FileCheck2, MessagesSquare, Send, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, formatDate, STATUS_LABELS, STATUS_TONE, type Application, type ApplicationSummary } from "../api";
@@ -36,10 +36,7 @@ export function ApplicationsPage() {
   return (
     <>
       <div className="page-head">
-        <span className="emblem" aria-hidden>
-          <Briefcase size={20} strokeWidth={1.8} />
-        </span>
-        <div className="grow">
+        <div>
           <h1>Lamaran</h1>
           <p>Tempel deskripsi pekerjaan untuk mulai. Setiap lamaran menyimpan analisis, jawabanmu, dan semua versi CV-nya.</p>
         </div>
@@ -137,41 +134,31 @@ function Stats({ apps }: { apps: ApplicationSummary[] }) {
   const sent = apps.filter((a) => ["applied", "interview", "offer", "rejected"].includes(a.status)).length;
   const interviews = apps.filter((a) => a.status === "interview" || a.status === "offer").length;
   const ready = apps.filter((a) => a.versions > 0).length;
-  const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
-  // Fit score distribution for the sparkline: newest last.
-  const bars = [...scored].reverse().slice(-12).map((a) => a.fit_score ?? 0);
-  const cells = [
-    { icon: <FileCheck2 size={15} />, v: ready, k: "CV siap kirim", of: apps.length, note: `${pct(ready, apps.length)}% dari lowongan` },
-    { icon: <Send size={15} />, v: sent, k: "Sudah dikirim", of: ready || apps.length, note: ready ? `${pct(sent, ready)}% dari CV siap` : "Belum ada" },
-    { icon: <MessagesSquare size={15} />, v: interviews, k: "Sampai interview", of: sent || 1, note: sent ? `${pct(interviews, sent)}% dari yang dikirim` : "Kirim dulu, lalu pantau" },
-  ];
   return (
     <div className="stat-strip">
       <div className="big">
-        <div>
-          <span className="v iris">
-            {avg ?? "-"}
-            <small>%</small>
-          </span>
-          <span className="k">Rata-rata kecocokan dari {apps.length} lowongan</span>
-        </div>
-        <div className="spark" aria-hidden>
-          {bars.map((b, i) => (
-            <i key={i} style={{ height: `${Math.max(8, b)}%` }} className={b >= 70 ? "hi" : ""} />
-          ))}
-        </div>
+        <span className="v iris">
+          {avg ?? "-"}
+          <small>%</small>
+        </span>
+        <span className="k">Rata-rata kecocokan</span>
       </div>
-      {cells.map((c) => (
-        <div key={c.k} className="cell">
-          <span className="glyph">{c.icon}</span>
-          <span className="v">{c.v}</span>
-          <span className="k">{c.k}</span>
-          <span className="meter" aria-hidden>
-            <i style={{ width: `${c.of ? Math.min(100, (c.v / c.of) * 100) : 0}%` }} />
-          </span>
-          <span className="note">{c.note}</span>
-        </div>
-      ))}
+      <div>
+        <span className="v">{apps.length}</span>
+        <span className="k">Lowongan dinilai</span>
+      </div>
+      <div>
+        <span className="v">{ready}</span>
+        <span className="k">CV siap kirim</span>
+      </div>
+      <div>
+        <span className="v">{sent}</span>
+        <span className="k">Sudah dikirim</span>
+      </div>
+      <div>
+        <span className="v">{interviews}</span>
+        <span className="k">Sampai interview</span>
+      </div>
     </div>
   );
 }

@@ -270,7 +270,7 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
           {STARTERS.map((st) => (
             <button key={st.title} type="button" className={`starter ${st.tone}`} onClick={pasteClipboard}>
               <span className="thumb" aria-hidden>
-                <StarterArt tone={st.tone} />
+                <i />
               </span>
               <b>{st.title}</b>
               <span>{st.text}</span>
@@ -468,48 +468,5 @@ function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow;
         </div>
       )}
     </article>
-  );
-}
-
-/** Tiny sketches of what each kind of paste looks like. */
-function StarterArt({ tone }: { tone: string }) {
-  if (tone === "a")
-    return (
-      <span className="art list">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="row">
-            <b />
-            <span>
-              <i style={{ width: `${70 - i * 12}%` }} />
-              <i style={{ width: `${45 + i * 8}%` }} />
-            </span>
-          </span>
-        ))}
-      </span>
-    );
-  if (tone === "b")
-    return (
-      <span className="art doc">
-        <span className="sheet">
-          <i style={{ width: "62%" }} className="t" />
-          <i style={{ width: "88%" }} />
-          <i style={{ width: "80%" }} />
-          <i style={{ width: "70%" }} />
-        </span>
-        <span className="ring">
-          <em>82</em>
-        </span>
-      </span>
-    );
-  return (
-    <span className="art post">
-      <span className="head">
-        <b />
-        <i style={{ width: "46%" }} />
-      </span>
-      <i style={{ width: "92%" }} />
-      <i style={{ width: "74%" }} />
-      <span className="pic" />
-    </span>
   );
 }

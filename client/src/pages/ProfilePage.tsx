@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check, Download, FileUp, Plus, Upload, UserRound, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Download, FileUp, Plus, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, formatDate, STANDALONE, type Fact, type Profile } from "../api";
 import { Busy, ErrorBox, Field, Loading, Spinner, useAction } from "../components/ui";
@@ -124,10 +124,7 @@ export function ProfilePage() {
   return (
     <>
       <div className="page-head">
-        <span className="emblem" aria-hidden>
-          <UserRound size={20} strokeWidth={1.8} />
-        </span>
-        <div className="grow">
+        <div>
           <h1>Profil CV</h1>
           <p>Semua CV dibuat dari halaman ini. Tulis pengalamanmu selengkap mungkin, termasuk angka. AI hanya memilih dan merangkai ulang, tidak pernah menambah.</p>
         </div>
