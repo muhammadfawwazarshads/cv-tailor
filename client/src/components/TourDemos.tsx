@@ -46,7 +46,8 @@ function Typed({ text, t, start, cps }: { text: string; t: number; start: number
   );
 }
 
-function Win({ title, h = 150, children }: { title: string; h?: number; children: ReactNode }) {
+/** A mini app window. Give `h` when the content grows while it plays, so the card does not jump. */
+function Win({ title, h, children }: { title: string; h?: number; children: ReactNode }) {
   return (
     <div className="td-win">
       <div className="td-bar">
@@ -55,7 +56,7 @@ function Win({ title, h = 150, children }: { title: string; h?: number; children
         <i />
         <span>{title}</span>
       </div>
-      <div className="td-body" style={{ height: h }}>
+      <div className="td-body" style={h ? { height: h } : undefined}>
         {children}
       </div>
     </div>
@@ -84,31 +85,38 @@ export function DemoFlow() {
 export function DemoCopy() {
   const t = useClock(4400);
   const sel = prog(t, 700, 700);
-  const lines = [92, 70, 84, 56, 76];
+  const lines = [92, 70, 80];
+  const move = prog(t, 2500, 700);
   return (
-    <Win title="linkedin.com/jobs" h={158}>
-      <div className="td-li">
-        <div className="td-li-title">DevOps Engineer</div>
-        <div className="td-li-sub">PT Nusantara Digital · Jakarta</div>
-        {lines.map((w, k) => (
-          <div key={k} className="td-line" style={{ width: `${w}%` }}>
-            <span className="td-sel" style={{ transform: `scaleX(${clamp01(sel * lines.length - k)})` }} />
-          </div>
-        ))}
-      </div>
-      <div className="td-keys">
-        <kbd className={t > 500 ? "pop" : ""}>Ctrl</kbd>+<kbd className={t > 500 ? "pop" : ""}>A</kbd>
-        <kbd className={t > 1700 ? "pop" : ""}>Ctrl</kbd>+<kbd className={t > 1700 ? "pop" : ""}>C</kbd>
-      </div>
-      {t > 1900 && (
-        <div className="td-toast">
-          <Clipboard size={12} /> Tersalin
+    <Win title="linkedin.com/jobs" h={150}>
+      <div className="td-li-head">
+        <div>
+          <div className="td-li-title">DevOps Engineer</div>
+          <div className="td-li-sub">PT Nusantara Digital · Jakarta</div>
         </div>
-      )}
-      <div className={`td-tile${t > 3200 ? " press" : ""}`} style={{ opacity: prog(t, 2500, 400) }}>
+        {t > 1900 ? (
+          <div className="td-toast">
+            <Check size={12} /> Tersalin
+          </div>
+        ) : (
+          <div className="td-keys">
+            <kbd className={t > 500 ? "pop" : ""}>Ctrl</kbd>
+            <kbd className={t > 500 ? "pop" : ""}>A</kbd>
+            <span>lalu</span>
+            <kbd className={t > 1700 ? "pop" : ""}>Ctrl</kbd>
+            <kbd className={t > 1700 ? "pop" : ""}>C</kbd>
+          </div>
+        )}
+      </div>
+      {lines.map((w, k) => (
+        <div key={k} className="td-line" style={{ width: `${w}%` }}>
+          <span className="td-sel" style={{ transform: `scaleX(${clamp01(sel * lines.length - k)})` }} />
+        </div>
+      ))}
+      <div className={`td-tile${t > 3200 ? " press" : ""}`} style={{ opacity: 0.35 + 0.65 * prog(t, 2500, 400) }}>
         <Clipboard size={13} /> Tempel hasil pencarian
       </div>
-      <div className="td-cursor" style={{ opacity: prog(t, 2500, 300), transform: `translate(${190 - 70 * prog(t, 2500, 700)}px, ${150 - 18 * prog(t, 2500, 700)}px)` }} />
+      <div className="td-cursor" style={{ opacity: prog(t, 2500, 300), transform: `translate(${330 - 170 * move}px, ${150 - 36 * move}px)` }} />
     </Win>
   );
 }
@@ -157,7 +165,7 @@ function fitColor(v: number) {
 export function DemoResults() {
   const t = useClock(3400);
   return (
-    <Win title="Hasil penilaian" h={196}>
+    <Win title="Hasil penilaian">
       <div className="td-rows">
         {LEADS.map((l, k) => {
           const p = prog(t, 200 + k * 450, 900);
@@ -169,7 +177,14 @@ export function DemoResults() {
                 <small>%</small>
               </div>
               <div className="td-row-main">
-                <b>{l.role}</b>
+                <div className="td-row-head">
+                  <b>{l.role}</b>
+                  {l.flag && (
+                    <span className="td-flag" style={{ opacity: prog(t, 1900, 300) }}>
+                      <Flag size={10} /> {l.flag}
+                    </span>
+                  )}
+                </div>
                 <span>
                   {l.co} · {l.size}
                 </span>
@@ -177,11 +192,6 @@ export function DemoResults() {
                   <i style={{ width: `${v}%`, background: fitColor(l.fit) }} />
                 </div>
               </div>
-              {l.flag && t > 1900 && (
-                <span className="td-flag">
-                  <Flag size={11} /> {l.flag}
-                </span>
-              )}
             </div>
           );
         })}
@@ -364,25 +374,5 @@ export function DemoProvider() {
         ))}
       </div>
     </Win>
-  );
-}
-
-export function Confetti() {
-  const bits = Array.from({ length: 22 }, (_, k) => k);
-  const colors = ["#8ec5ff", "#c7a6ff", "#ff9ecf", "#ffd9a0", "#7fe3b8"];
-  return (
-    <div className="td-confetti" aria-hidden>
-      {bits.map((k) => (
-        <i
-          key={k}
-          style={{
-            left: `${(k * 37) % 100}%`,
-            background: colors[k % colors.length],
-            animationDelay: `${(k % 7) * 0.12}s`,
-            animationDuration: `${1.6 + (k % 5) * 0.25}s`,
-          }}
-        />
-      ))}
-    </div>
   );
 }

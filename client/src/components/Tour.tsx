@@ -1,8 +1,9 @@
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { APP_NAME } from "../brand";
 import { Mascot, type MascotPose } from "./Mascot";
-import { Confetti, DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
+import { DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
 
 /**
  * Guided product tour: a spotlight glides from one part of the app to the next while a card explains it.
@@ -14,7 +15,7 @@ type Step = { route?: string; target?: string; title: string; body: string; plac
 
 const STEPS: Step[] = [
   {
-    title: "Selamat datang di CV Tailor",
+    title: `Selamat datang di ${APP_NAME}`,
     demo: DemoFlow,
     body: "Alurnya empat langkah: pilah lowongan, nilai kecocokan, buat CV dan email, lalu isi form perusahaan. Tur ini memakan kurang dari satu menit.",
   },
@@ -85,19 +86,21 @@ const STEPS: Step[] = [
   },
 ];
 
-const SEEN_KEY = "cv-tailor:tour-seen";
+// The tour opens on every visit until the user ticks "Jangan tampilkan lagi".
+const HIDE_KEY = "cv-tailor:tour-hidden";
 const PAD = 8;
 
-export function tourSeen() {
+export function tourHidden() {
   try {
-    return localStorage.getItem(SEEN_KEY) === "1";
+    return localStorage.getItem(HIDE_KEY) === "1";
   } catch {
     return true;
   }
 }
-function markSeen() {
+function setHidden(hidden: boolean) {
   try {
-    localStorage.setItem(SEEN_KEY, "1");
+    if (hidden) localStorage.setItem(HIDE_KEY, "1");
+    else localStorage.removeItem(HIDE_KEY);
   } catch {
     /* storage blocked: the tour simply shows again next time */
   }
@@ -124,10 +127,11 @@ export function Tour({ onClose }: { onClose: () => void }) {
   const step = STEPS[i];
   const last = i === STEPS.length - 1;
 
+  const [hide, setHide] = useState(tourHidden);
   const close = useCallback(() => {
-    markSeen();
+    setHidden(hide);
     onClose();
-  }, [onClose]);
+  }, [onClose, hide]);
 
   // Go to the step's page.
   useEffect(() => {
@@ -238,7 +242,6 @@ export function Tour({ onClose }: { onClose: () => void }) {
         className={`tour-card${centered ? " centered" : ""}`}
         style={!centered && cardPos ? { left: cardPos.left, top: cardPos.top } : undefined}
       >
-        {centered && last && <Confetti />}
         {centered && (
           <div className="tour-hero">
             <Mascot size={150} pose={last ? "cheer" : "wave"} />
@@ -266,6 +269,10 @@ export function Tour({ onClose }: { onClose: () => void }) {
         <div className="tour-progress" aria-hidden>
           <i style={{ width: `${((i + 1) / STEPS.length) * 100}%` }} />
         </div>
+        <label className="tour-hide">
+          <input type="checkbox" checked={hide} onChange={(e) => setHide(e.target.checked)} />
+          Jangan tampilkan lagi
+        </label>
         <div className="tour-actions">
           {i === 0 ? (
             <button className="btn ghost sm" onClick={close}>

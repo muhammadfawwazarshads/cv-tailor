@@ -1,8 +1,9 @@
-import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, IdCard, LogOut, Menu, Radar, UserRound, Users } from "lucide-react";
+import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, IdCard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Radar, UserRound, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
-import { Tour, tourSeen } from "./components/Tour";
+import { APP_NAME } from "./brand";
+import { Tour, tourHidden } from "./components/Tour";
 import { LogoMark } from "./components/Logo";
 import { Loading } from "./components/ui";
 import { Welcome } from "./components/Welcome";
@@ -27,7 +28,7 @@ export function Brand() {
       <div className="brand-mark">
         <LogoMark size={34} />
       </div>
-      CV Tailor
+      {APP_NAME}
     </div>
   );
 }
@@ -70,12 +71,32 @@ export function App() {
   );
 }
 
+const SIDEBAR_KEY = "cv-tailor:sidebar";
+
 function Shell() {
   const { user, setUser, welcoming } = useAuth();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
-  const [tour, setTour] = useState(() => !tourSeen());
+  const [tour, setTour] = useState(() => !tourHidden());
+  // Desktop sidebar: a slim icon rail by default, or wide with labels; the choice is remembered.
+  const [wide, setWide] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_KEY) === "wide";
+    } catch {
+      return false;
+    }
+  });
+  function toggleWide() {
+    setWide((w) => {
+      try {
+        localStorage.setItem(SIDEBAR_KEY, w ? "rail" : "wide");
+      } catch {
+        /* storage blocked: the choice lasts for this visit */
+      }
+      return !w;
+    });
+  }
 
   async function logout() {
     await api("POST", "/api/auth/logout").catch(() => {});
@@ -85,7 +106,7 @@ function Shell() {
   const isAdmin = user!.role === "admin";
 
   return (
-    <div className="shell">
+    <div className={`shell${wide ? " wide" : ""}`}>
       <div className="aurora" aria-hidden />
       <aside className={`sidebar${open ? " open" : ""}`}>
         <Brand />
@@ -126,6 +147,10 @@ function Shell() {
           <CircleHelp size={18} strokeWidth={1.8} />
           <span className="lbl">Tur aplikasi</span>
         </button>
+        <button className="help-btn rail-toggle" onClick={toggleWide} aria-label={wide ? "Ciutkan sidebar" : "Lebarkan sidebar"} title={wide ? "Ciutkan" : "Lebarkan"}>
+          {wide ? <PanelLeftClose size={18} strokeWidth={1.8} /> : <PanelLeftOpen size={18} strokeWidth={1.8} />}
+          <span className="lbl">{wide ? "Ciutkan" : "Lebarkan"}</span>
+        </button>
         <div className="me">
           <div className="avatar">{(user!.name || user!.email).slice(0, 1).toUpperCase()}</div>
           <div>
@@ -145,7 +170,7 @@ function Shell() {
             <Menu size={20} />
           </button>
           <LogoMark size={24} />
-          CV Tailor
+          {APP_NAME}
         </div>
         <div className="topbar">
           {user!.role === "admin" && (
