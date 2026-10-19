@@ -1,0 +1,34 @@
+# One-click deploy: https://render.com/deploy?repo=https://github.com/muhammadfawwazarshads/cv-tailor
+services:
+  - type: web
+    name: cv-tailor
+    runtime: node
+    plan: free
+    # Dev dependencies (Vite, TypeScript) are needed for the build step.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: APP_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cv-tailor-db
+          property: connectionString
+      - key: ALLOW_REGISTRATION
+        value: "true"
+      - key: DAILY_AI_LIMIT
+        value: "50"
+      # Set to "true" to try the app without an API key (adds the "Mock" provider type).
+      - key: ENABLE_MOCK_LLM
+        value: "false"
+
+databases:
+  - name: cv-tailor-db
+    plan: free
+    databaseName: cvtailor
+    user: cvtailor

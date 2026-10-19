@@ -72,6 +72,12 @@ Urutkan provider dengan tombol panah. Contoh pola yang umum: model utama di urut
 
 ## Production
 
+### Render (sekali klik, gratis)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/muhammadfawwazarshads/cv-tailor)
+
+Blueprint `render.yaml` membuat web service Node dan database PostgreSQL di plan gratis, lengkap dengan `APP_SECRET` acak. Setelah deploy selesai, buka URL `*.onrender.com`, daftar (akun pertama jadi admin), lalu tambahkan provider AI. Plan gratis tidur setelah tidak dipakai beberapa saat, jadi akses pertama bisa butuh sekitar satu menit.
+
 ### Docker Compose (app + PostgreSQL)
 
 ```bash
