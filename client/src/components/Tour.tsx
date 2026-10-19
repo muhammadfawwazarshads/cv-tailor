@@ -52,9 +52,9 @@ const STEPS: Step[] = [
     route: "/leads",
     target: '[data-tour="results"]',
     chapter: 1,
-    title: "Lowongan sudah diukur",
+    title: "Benang menyaring lowongannya",
     demo: DemoResults,
-    body: "Tiap lowongan diukur: skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Yang cocok dijadikan lamaran, lalu CV-mu disesuaikan untuknya.",
+    body: "Dua hal dicek: perusahaannya jelas atau tidak (ukuran, tanda bahaya seperti biaya rekrutmen), dan berapa banyak syaratnya yang memang ada di Bahan CV-mu. CV nanti disesuaikan, tapi tidak ditambah-tambah, jadi angka itu batas seberapa pas CV-nya bisa jadi. Hasilnya: Layak daftar, Coba aja, atau Lewati.",
     place: "top",
   },
   {
