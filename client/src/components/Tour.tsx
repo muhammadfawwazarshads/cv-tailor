@@ -54,7 +54,16 @@ const STEPS: Step[] = [
     chapter: 1,
     title: "Lowongan sudah diukur",
     demo: DemoResults,
-    body: "Tiap lowongan diukur: skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Buka satu baris untuk mulai menjahit CV-nya.",
+    body: "Tiap lowongan diukur: skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Yang cocok dijadikan lamaran, lalu CV-mu disesuaikan untuknya.",
+    place: "top",
+  },
+  {
+    route: "/applications",
+    target: '[data-tour="app-list"]',
+    chapter: 2,
+    title: "CV-mu disesuaikan per lowongan",
+    demo: DemoConfirm,
+    body: "Buka satu lamaran. CV default dari Bahan CV-mu diaransemen ulang untuk lowongan itu. Kalau lowongan minta sesuatu yang belum jelas di bahanmu, Benang tanya dulu: \"Kamu pernah X?\" Yang kamu jawab belum, tidak diklaim. Setelah itu CV dijahit: unduh PDF, lalu tulis email di tab Email.",
     place: "top",
   },
   {
@@ -64,15 +73,6 @@ const STEPS: Step[] = [
     demo: DemoStats,
     body: "Persen besar di atas halaman Lamaran adalah rata-rata seberapa cocok kamu dengan lowongan yang sudah diukur. Makin tinggi, makin pas. Di bawahnya ada hitungan tiap tahap: diukur, dijahit, dikirim, sampai interview. Lowongan dari luar LinkedIn bisa diukur lewat tombol Ukur lowongan baru.",
     place: "bottom",
-  },
-  {
-    route: "/applications",
-    target: '[data-tour="app-list"]',
-    chapter: 2,
-    title: "Benang di tiap lamaran",
-    demo: DemoConfirm,
-    body: "Tiap lamaran punya benang Ukur, Pas, Jahit, Kirim. Di tahap Pas, jawab pertanyaan konfirmasi supaya CV tetap jujur. Setelah itu CV dijahit: unduh PDF, lalu tulis email di tab Email.",
-    place: "top",
   },
   {
     route: "/forms",
