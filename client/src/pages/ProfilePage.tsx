@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, Check, Download, FileUp, Plus, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, formatDate, STANDALONE, type Fact, type Profile } from "../api";
+import { BahanStory } from "../components/BahanStory";
 import { BenangSays } from "../components/BenangSays";
 import { Busy, ErrorBox, Field, Loading, Spinner, useAction } from "../components/ui";
 
@@ -80,6 +81,9 @@ export function ProfilePage() {
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saved, setSaved] = useState(false);
+  // Story mode (chat with Benang) for thin material, the full form for everything else.
+  const [mode, setMode] = useState<"story" | "edit">("edit");
+  const [importOpen, setImportOpen] = useState(false);
   const load = useAction();
   const save = useAction();
 
@@ -88,6 +92,7 @@ export function ProfilePage() {
       const r = await api("GET", "/api/profile");
       setProfile(r.profile);
       setUpdatedAt(r.updatedAt);
+      if (!r.profile.name || !r.profile.experience.length) setMode("story");
     });
   }, []);
 
@@ -133,10 +138,34 @@ export function ProfilePage() {
           </p>
         </div>
       </div>
+      <div className="segmented" role="tablist">
+        <button role="tab" aria-selected={mode === "story"} className={mode === "story" ? "active" : ""} onClick={() => setMode("story")}>
+          Cerita bareng Benang
+        </button>
+        <button role="tab" aria-selected={mode === "edit"} className={mode === "edit" ? "active" : ""} onClick={() => setMode("edit")}>
+          Edit detail
+        </button>
+      </div>
 
+      {mode === "story" ? (
+        <BahanStory
+          profile={profile}
+          onChange={(p) => {
+            setProfile(p);
+            setDirty(false);
+            setUpdatedAt(new Date().toISOString());
+          }}
+          onImport={() => {
+            setImportOpen(true);
+            setMode("edit");
+          }}
+          onEdit={() => setMode("edit")}
+        />
+      ) : (
       <div className="stack">
-        <BahanStock profile={profile} />
+        <BahanStock profile={profile} onStory={() => setMode("story")} />
         <ImportCard
+          startOpen={importOpen}
           onImported={(p) => {
             setProfile(p);
             setDirty(true);
@@ -393,6 +422,7 @@ export function ProfilePage() {
         <FactsCard />
         {STANDALONE && <BackupCard />}
       </div>
+      )}
     </>
   );
 }
@@ -437,7 +467,7 @@ function jumpTo(id: string) {
 }
 
 /** Benang reads the material and says how ready it is, with the single most useful next step. */
-function BahanStock({ profile }: { profile: Profile }) {
+function BahanStock({ profile, onStory }: { profile: Profile; onStory: () => void }) {
   const checks = bahanChecks(profile);
   const score = Math.round((checks.filter((c) => c.ok).length / checks.length) * 100);
   const next = checks.find((c) => !c.ok);
@@ -457,9 +487,14 @@ function BahanStock({ profile }: { profile: Profile }) {
         pose={next ? "point-right" : "cheer"}
         actions={
           next && (
-            <button className="btn primary sm" type="button" onClick={() => jumpTo(next.target)}>
-              Isi sekarang
-            </button>
+            <>
+              <button className="btn primary sm" type="button" onClick={onStory}>
+                Ceritakan ke Benang
+              </button>
+              <button className="btn sm" type="button" onClick={() => jumpTo(next.target)}>
+                Isi di form
+              </button>
+            </>
           )
         }
       >
@@ -487,10 +522,10 @@ function BahanStock({ profile }: { profile: Profile }) {
   );
 }
 
-function ImportCard({ onImported }: { onImported: (p: Profile) => void }) {
+function ImportCard({ onImported, startOpen = false }: { onImported: (p: Profile) => void; startOpen?: boolean }) {
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [done, setDone] = useState(false);
   const act = useAction();
 
