@@ -1,7 +1,9 @@
 import { Gauge, Plus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, formatDate, STATUS_LABELS, STATUS_TONE, type Application, type ApplicationSummary } from "../api";
+import { api, formatDate, STATUS_LABELS, type Application, type ApplicationSummary } from "../api";
+import { Mascot } from "../components/Mascot";
+import { SewTrack, sewProgress } from "../components/Sewing";
 import { Busy, ErrorBox, Field, Loading, Modal, useAction } from "../components/ui";
 
 export function FitBar({ score }: { score: number | null }) {
@@ -14,10 +16,6 @@ export function FitBar({ score }: { score: number | null }) {
       {score}%
     </div>
   );
-}
-
-export function StatusChip({ status }: { status: string }) {
-  return <span className={`chip dot ${STATUS_TONE[status] ?? ""}`}>{STATUS_LABELS[status] ?? status}</span>;
 }
 
 export function ApplicationsPage() {
@@ -66,7 +64,16 @@ export function ApplicationsPage() {
                   <div className="title">{a.role_title || "Posisi tanpa judul"}</div>
                   <div className="company">{a.company || "Perusahaan belum diisi"}</div>
                 </div>
-                <div>{a.error && !a.fit_score ? <span className="chip bad dot">Analisis gagal</span> : <StatusChip status={a.status} />}</div>
+                <div className="row-stage">
+                  {a.error && !a.fit_score ? (
+                    <span className="chip bad dot">Analisis gagal</span>
+                  ) : (
+                    <>
+                      <SewTrack compact done={sewProgress({ measured: a.fit_score != null, status: a.status, versions: a.versions })} />
+                      <span className="row-status">{STATUS_LABELS[a.status] ?? a.status}</span>
+                    </>
+                  )}
+                </div>
                 <div className="score">
                   <b>{a.fit_score ?? "-"}</b>
                   <span>{formatDate(a.updated_at).split(",")[0]}</span>
@@ -76,7 +83,16 @@ export function ApplicationsPage() {
           </div>
         </div>
         </>
-      ) : null}
+      ) : (
+        <div className="empty-rack">
+          <Mascot size={110} pose="point-up" />
+          <h2>Belum ada yang dijahit</h2>
+          <p>Ukur satu lowongan dulu. Benang akan menilai kecocokannya, lalu menjahit CV-mu supaya pas.</p>
+          <button className="btn primary" onClick={() => setComposing(true)}>
+            <Plus size={16} /> Ukur lowongan pertama
+          </button>
+        </div>
+      )}
     </>
   );
 }
@@ -148,14 +164,18 @@ function Stats({ apps, onNew }: { apps: ApplicationSummary[]; onNew: () => void 
         {avg ?? "0"}
         <span>%</span>
       </div>
-      <div className="hero-sub">dari {apps.length} lowongan yang sudah dinilai</div>
+      <div className="hero-sub">dari {scored.length} lowongan yang sudah diukur</div>
       <div className="kpis">
         <div>
-          <span>CV siap</span>
+          <span>Diukur</span>
+          <b>{scored.length}</b>
+        </div>
+        <div>
+          <span>Dijahit</span>
           <b>{ready}</b>
         </div>
         <div>
-          <span>Sudah dikirim</span>
+          <span>Dikirim</span>
           <b>{sent}</b>
         </div>
         <div>

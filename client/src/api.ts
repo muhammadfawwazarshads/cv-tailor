@@ -118,17 +118,6 @@ export const STATUS_LABELS: Record<string, string> = {
   withdrawn: "Batal",
 };
 
-export const STATUS_TONE: Record<string, string> = {
-  analyzing: "",
-  questions: "gap",
-  tailored: "blue",
-  applied: "blue",
-  interview: "fit",
-  offer: "fit",
-  rejected: "bad",
-  withdrawn: "",
-};
-
 export function formatDate(s: string) {
   return new Date(s).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }

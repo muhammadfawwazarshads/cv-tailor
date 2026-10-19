@@ -1018,3 +1018,64 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 .phase-leave .welcome-mascot, .phase-leave h1, .phase-leave p { opacity: 0; transform: translateY(8px); }
 @media (max-width: 600px) { .welcome-stage, .welcome-sheet { width: 240px; height: 232px; } .welcome-mascot { right: -40px; } .welcome-mascot .mascot { width: 96px; height: auto; } }
 @media (prefers-reduced-motion: reduce) { .welcome-stage, .welcome h1, .welcome p, .phase-done .welcome-sheet { animation: none; } .welcome-sheet, .welcome-tag { transition: none; } }
+
+/* ---------- Workshop: measure, fit, sew, send ---------- */
+/* Thread track: done stages stitched in Benang's thread, the rest still tailor's chalk */
+.sew-track { list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-start; }
+.sew-stop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.sew-thread { position: absolute; top: 11px; right: 50%; width: 100%; height: 2px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 5px, transparent 5px 10px); }
+.sew-thread.sewn { background: repeating-linear-gradient(90deg, var(--iris) 0 7px, transparent 7px 11px); height: 2.5px; }
+.sew-knot { position: relative; z-index: 1; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; padding: 0; font: inherit; border: 1.5px dashed rgba(255,255,255,.22); background: var(--canvas); color: var(--ink); }
+button.sew-knot { cursor: pointer; transition: transform .15s; }
+button.sew-knot:hover { transform: scale(1.1); }
+.sew-stop.done .sew-knot { border: none; background: var(--iris); color: #1d0f38; }
+.sew-stop.now .sew-knot { border: 1.5px solid var(--iris); color: var(--iris); box-shadow: 0 0 0 4px rgba(199, 166, 255, .12); }
+.sew-needle { width: 14px; height: 14px; animation: sew-poke 1.6s ease-in-out infinite; }
+@keyframes sew-poke { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-1.5px, 1.5px); } }
+.sew-label { font-size: 11.5px; color: var(--muted); }
+.sew-stop.done .sew-label { color: var(--ink-2); }
+.sew-stop.now .sew-label { color: var(--ink); font-weight: 600; }
+.sew-head { max-width: 440px; margin: 4px 0 22px -43px; }
+/* compact track in list rows */
+.sew-track.compact { width: 92px; }
+.sew-track.compact .sew-knot { width: 12px; height: 12px; border-width: 1px; }
+.sew-track.compact .sew-thread { top: 5px; height: 1.5px; }
+.sew-track.compact .sew-needle { width: 9px; height: 9px; }
+.sew-track.compact .sew-stop.now .sew-knot { box-shadow: none; }
+.row-stage { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.row-status { font-size: 11px; color: var(--muted); }
+
+/* Fit score as a tailor's tape measure */
+.tape { position: relative; width: 260px; max-width: 100%; margin-top: 14px; padding-top: 2px; }
+.tape-strip { position: relative; height: 30px; border-radius: 4px; background: #efe7d6; overflow: hidden; box-shadow: inset 0 -2px 0 rgba(0,0,0,.08); }
+.tape-fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(163, 95, 236, .28); animation: tape-in .9s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes tape-in { from { width: 0; } }
+.tape-strip i { position: absolute; top: 0; width: 1px; height: 6px; background: #5c5141; }
+.tape-strip i.major { height: 10px; }
+.tape-strip b { position: absolute; top: 12px; transform: translateX(-50%); font-size: 9px; font-weight: 600; color: #3b3328; font-variant-numeric: tabular-nums; }
+.tape-strip b:first-of-type { transform: none; margin-left: 2px; }
+.tape-strip b:last-of-type { transform: translateX(-100%); margin-left: -2px; }
+.tape-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: #f2f3f7; border-radius: 2px; box-shadow: 0 0 0 2px rgba(10, 13, 22, .6); animation: tape-mark-in .9s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes tape-mark-in { from { left: 0; } }
+
+/* AI busy: Benang watches a needle stitch across a strip of fabric */
+.busy { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.busy .small { color: var(--muted); opacity: 1 !important; }
+.sewing { display: flex; align-items: center; gap: 2px; flex: none; }
+.sewing-cloth { position: relative; width: 124px; height: 24px; border-radius: 4px; background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.1); overflow: hidden; }
+.sewing-stitches { position: absolute; left: 6px; top: 11px; height: 2px; width: 0; background: repeating-linear-gradient(90deg, var(--iris) 0 6px, transparent 6px 10px); animation: sewing-run 2.4s linear infinite; }
+.sewing-needle { position: absolute; top: 0; left: 0; color: #e9ecf5; animation: sewing-needle 2.4s linear infinite; }
+.sewing-needle .sew-needle { width: 22px; height: 22px; transform: rotate(45deg); animation: sewing-dip .4s ease-in-out infinite; }
+@keyframes sewing-run { 0% { width: 0; opacity: 1; } 85% { width: 108px; opacity: 1; } 100% { width: 108px; opacity: 0; } }
+@keyframes sewing-needle { 0% { left: 0; } 85% { left: 100px; opacity: 1; } 100% { left: 100px; opacity: 0; } }
+@keyframes sewing-dip { 50% { transform: rotate(45deg) translateY(3px); } }
+
+/* The CV desk is the workbench: a stitched edge around the sheet being sewn */
+.desk { position: relative; }
+.desk::before { content: ""; position: absolute; inset: 7px; border-radius: 14px; border: 1.5px dashed rgba(255, 255, 255, .08); pointer-events: none; }
+
+/* Empty list: an invitation to measure the first job */
+.empty-rack { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 24px 16px 8px; }
+.empty-rack h2 { font-size: 17px; font-weight: 600; margin-top: 4px; }
+.empty-rack p { color: var(--muted); max-width: 360px; font-size: 13px; margin-bottom: 10px; }
+@media (prefers-reduced-motion: reduce) { .sew-needle, .sewing-stitches, .sewing-needle, .tape-fill, .tape-mark { animation: none; } .sewing-stitches { width: 108px; } }

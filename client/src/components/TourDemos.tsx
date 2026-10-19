@@ -69,7 +69,7 @@ const JD = "DevOps Engineer · PT Nusantara Digital\nJakarta (Hybrid) · Penuh w
 
 export function DemoFlow() {
   const t = useClock(4200);
-  const steps = ["Pilah lowongan", "Nilai kecocokan", "CV dan email", "Isi form HR"];
+  const steps = ["Ukur lowongan", "Pas-kan jawaban", "Jahit CV", "Kirim lamaran"];
   return (
     <div className="td-flow">
       {steps.map((s, k) => (

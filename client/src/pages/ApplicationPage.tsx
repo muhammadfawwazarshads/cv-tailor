@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, formatDate, STANDALONE, STATUS_LABELS, type Application, type CvDocument, type Version } from "../api";
 import { CvPreview } from "../components/CvPreview";
+import { SewTrack, sewProgress, TapeMeasure } from "../components/Sewing";
 import { DraftsTab } from "./DraftsTab";
 import { Busy, ErrorBox, Loading, useAction } from "../components/ui";
 
@@ -81,6 +82,13 @@ export function ApplicationPage() {
             <Trash2 size={18} />
           </button>
         </div>
+      </div>
+
+      <div className="sew-head">
+        <SewTrack
+          done={sewProgress({ measured: Boolean(app.analysis), status: app.status, versions: versions.length })}
+          onStep={(i) => setTab(i < 2 ? "analysis" : i === 2 ? "cv" : "email")}
+        />
       </div>
 
       <div className="segmented" role="tablist">
@@ -185,7 +193,6 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
 
   const filled = a.questions.filter((q) => (draft[q.id] ?? "").trim()).length;
   const prevAnswers = app.answers.filter((x) => !a.questions.some((q) => q.id === x.questionId));
-  const segments = 20;
 
   return (
     <div className="stack-lg">
@@ -195,11 +202,7 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
             <b>{a.fitScore}</b>
             <span>%</span>
           </div>
-          <div className="fit-scale" aria-hidden>
-            {Array.from({ length: segments }, (_, i) => (
-              <i key={i} className={i < Math.round((a.fitScore / 100) * segments) ? "on" : ""} />
-            ))}
-          </div>
+          <TapeMeasure value={a.fitScore} />
         </div>
         <div>
           <h2>{a.verdict}</h2>

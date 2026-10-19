@@ -1,5 +1,6 @@
 import { AlertCircle, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { SewingLoader } from "./Sewing";
 
 export function Spinner() {
   return <span className="spinner" aria-hidden />;
@@ -21,14 +22,11 @@ export function Busy({ children }: { children: ReactNode }) {
   }, []);
   return (
     <div className="busy" role="status" aria-live="polite">
-      <Spinner />
+      <SewingLoader />
       <div>
         <b>{children}</b>
         <div className="small" style={{ opacity: 0.7 }}>
-          {secs} detik, biasanya selesai dalam 20 sampai 90 detik
-        </div>
-        <div className="meter">
-          <i />
+          Benang lagi menjahit, {secs} detik. Biasanya selesai dalam 20 sampai 90 detik.
         </div>
       </div>
     </div>
