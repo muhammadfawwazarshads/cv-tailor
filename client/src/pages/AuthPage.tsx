@@ -55,6 +55,31 @@ export function AuthPage() {
   const look: [number, number] | undefined =
     focus === "email" || focus === "name" ? [Math.min(1, -0.8 + typed.length / 16), 0.9] : focus === "password" ? [0.2, 0.9] : undefined;
 
+  // What Benang says on its perch: the sign-in told as a small scene.
+  const first = name.trim().split(/\s+/)[0];
+  const line =
+    mood === "cheer"
+      ? "Yeay! Ayo masuk ke bengkel."
+      : mood === "sad"
+        ? "Hmm, kayaknya ada yang salah. Coba cek lagi?"
+        : busy
+          ? "Sebentar, aku cek dulu…"
+          : focus === "password"
+            ? showPw
+              ? "Eh, kelihatan. Aku nggak ngintip kok."
+              : "Aku tutup mata, janji!"
+            : focus === "email"
+              ? email
+                ? "Oke, aku catat emailnya."
+                : "Email yang kamu pakai daftar, ya."
+              : focus === "name"
+                ? first
+                  ? `Halo, ${first}! Senang kenal.`
+                  : "Siapa namamu?"
+                : mode === "login"
+                  ? "Halo lagi! Masuk dulu, kita lanjut menjahit CV-mu."
+                  : "Halo! Aku Benang. Bikin akun dulu, nanti aku jahitkan CV-mu untuk tiap lowongan.";
+
   return (
     <div className="signin">
       <div className="aurora" aria-hidden />
@@ -64,6 +89,9 @@ export function AuthPage() {
       <main className="signin-main">
         <div className="signin-perch">
           <Mascot size={128} pose={pose} look={look} />
+          <div className="signin-says" key={line} aria-live="polite">
+            {line}
+          </div>
         </div>
         <div className={`signin-card${shake ? " shake" : ""}`}>
           <h1>{mode === "login" ? "Masuk" : "Buat akun"}</h1>

@@ -4,7 +4,7 @@ import { api, formatDate, type PersonalData } from "../api";
 import { BenangSays } from "../components/BenangSays";
 import { ErrorBox, Loading, useAction } from "../components/ui";
 
-/** "Data diri" tab of Form HR: what Benang remembers for company forms (answers, signature, photo). */
+/** "Buku catatan Benang" tab of Form HR: what Benang remembers for company forms (answers, signature, photo). */
 export function PersonalTab() {
   const [data, setData] = useState<PersonalData | null>(null);
   const [items, setItems] = useState<{ label: string; value: string }[]>([]);
@@ -42,6 +42,7 @@ export function PersonalTab() {
     <>
       <div style={{ marginBottom: 18 }}>
         <BenangSays pose={!data.signature || !data.photo || !items.length ? "point-down" : "cheer"}>
+          <span className="says-kicker">Ini buku catatanku. Tiap form HR yang kita isi bareng, jawabanmu aku catat di sini.</span>
           {!data.signature ? (
             <>
               <b>Tanda tangannya belum ada.</b>
@@ -59,7 +60,7 @@ export function PersonalTab() {
             </>
           ) : (
             <>
-              <b>Data dirimu lengkap.</b>
+              <b>Buku catatanku sudah lengkap.</b>
               <p>{items.length} jawaban, tanda tangan, dan pas foto siap. Form berikutnya hampir terisi sendiri.</p>
             </>
           )}
@@ -74,8 +75,8 @@ export function PersonalTab() {
       <div className="card stack">
         <div className="card-head" style={{ marginBottom: 0 }}>
           <div>
-            <h2>Jawaban tersimpan</h2>
-            <p>{items.length ? `${items.length} jawaban. Form berikutnya tidak akan menanyakannya lagi.` : "Belum ada. Jawabanmu saat mengisi form akan muncul di sini."}</p>
+            <h2>Yang Benang catat</h2>
+            <p>{items.length ? `${items.length} catatan. Form berikutnya tidak akan menanyakannya lagi.` : "Masih kosong. Tiap kamu jawab pertanyaan Benang di form HR, catatannya muncul di sini."}</p>
           </div>
           <button
             className="btn sm"
@@ -226,7 +227,7 @@ function SignatureCard({ value, onSave, busy }: { value: string | null; onSave: 
   }
 
   return (
-    <div className="card stack">
+    <div className="card stack" data-tour="signature">
       <div className="card-head" style={{ marginBottom: 0 }}>
         <div>
           <h2>Tanda tangan</h2>
@@ -244,31 +245,34 @@ function SignatureCard({ value, onSave, busy }: { value: string | null; onSave: 
         </div>
       ) : (
         <>
-          <canvas
-            ref={canvas}
-            className="sig-pad"
-            width={720}
-            height={240}
-            aria-label="Area tanda tangan"
-            onPointerDown={(e) => {
-              e.currentTarget.setPointerCapture(e.pointerId);
-              drawing.current = true;
-              const ctx = e.currentTarget.getContext("2d")!;
-              const p = pos(e);
-              ctx.beginPath();
-              ctx.moveTo(p.x, p.y);
-            }}
-            onPointerMove={(e) => {
-              if (!drawing.current) return;
-              const ctx = e.currentTarget.getContext("2d")!;
-              const p = pos(e);
-              ctx.lineTo(p.x, p.y);
-              ctx.stroke();
-              setEmpty(false);
-            }}
-            onPointerUp={() => (drawing.current = false)}
-            onPointerLeave={() => (drawing.current = false)}
-          />
+          {/* dark pad for the dark theme; the ink only looks light on screen, the saved PNG stays dark */}
+          <div className="sig-pad-wrap">
+            <canvas
+              ref={canvas}
+              className="sig-pad"
+              width={720}
+              height={240}
+              aria-label="Area tanda tangan"
+              onPointerDown={(e) => {
+                e.currentTarget.setPointerCapture(e.pointerId);
+                drawing.current = true;
+                const ctx = e.currentTarget.getContext("2d")!;
+                const p = pos(e);
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+              }}
+              onPointerMove={(e) => {
+                if (!drawing.current) return;
+                const ctx = e.currentTarget.getContext("2d")!;
+                const p = pos(e);
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                setEmpty(false);
+              }}
+              onPointerUp={() => (drawing.current = false)}
+              onPointerLeave={() => (drawing.current = false)}
+            />
+          </div>
           <div className="small muted">Tanda tangan dengan mouse atau jari, atau unggah foto tanda tangan di kertas putih (latar putihnya dihapus otomatis).</div>
           <div className="row">
             <label className="btn sm">

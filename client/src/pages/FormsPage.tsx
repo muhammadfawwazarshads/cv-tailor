@@ -1,11 +1,12 @@
-import { Check, ChevronDown, Download, FileText, PenLine, Upload, X } from "lucide-react";
+import { Check, ChevronDown, FileText, PenLine, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { api, downloadBase64, type FormPlan, type FormQuestion, type FormSlot, type PersonalData } from "../api";
+import { api, downloadBase64, type FormPlan, type FormSlot, type PersonalData } from "../api";
 import { Busy, ErrorBox, useAction } from "../components/ui";
 import { PersonalTab } from "./PersonalPage";
 import { BenangSays } from "../components/BenangSays";
 import { DemoForm } from "../components/TourDemos";
+import { FormStory } from "../components/FormStory";
 
 type Analysis = { slots: FormSlot[]; plan: FormPlan };
 type AnswerMap = Record<string, string | string[]>;
@@ -45,7 +46,7 @@ export function FormsPage() {
   const [done, setDone] = useState<string | null>(null);
   const read = useAction();
   const fill = useAction();
-  // Two tabs: fill a company form, or review what Benang remembers for forms (Data diri).
+  // Two tabs: fill a company form, or review what Benang remembers for forms (its notebook).
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") === "data" ? "data" : "fill";
   const goTab = (t: "fill" | "data") => setParams(t === "data" ? { tab: "data" } : {}, { replace: true });
@@ -91,7 +92,6 @@ export function FormsPage() {
   }
 
   const labelOf = useMemo(() => new Map(analysis?.slots.map((s) => [s.id, s.label]) ?? []), [analysis]);
-  const answered = analysis ? analysis.plan.questions.filter((q) => [answers[q.id]].flat().some((x) => x && String(x).trim())).length : 0;
 
   const head = (
     <>
@@ -99,8 +99,8 @@ export function FormsPage() {
         <div>
           <h1>Form HR</h1>
           <p>
-            Form data diri dari perusahaan (.docx) diisi Benang dari Bahan CV dan Data diri-mu. Yang belum diketahui ditanyakan sekali, lalu diingat
-            untuk form berikutnya.
+            Form data diri dari perusahaan (.docx) diisi Benang dari Bahan CV dan buku catatannya. Yang belum dia tahu ditanyakan sekali, dicatat, lalu
+            terisi sendiri di form berikutnya.
           </p>
         </div>
       </div>
@@ -109,7 +109,7 @@ export function FormsPage() {
           Isi form
         </button>
         <button role="tab" aria-selected={tab === "data"} className={tab === "data" ? "active" : ""} onClick={() => goTab("data")}>
-          Data diri {personal && personal.personal.items.length > 0 && <span className="n">{personal.personal.items.length}</span>}
+          Buku catatan Benang {personal && personal.personal.items.length > 0 && <span className="n">{personal.personal.items.length}</span>}
         </button>
       </div>
     </>
@@ -139,7 +139,7 @@ export function FormsPage() {
                 goTab("data");
               }}
             >
-              Simpan tanda tanganmu di Data diri
+              Simpan tanda tanganmu di buku catatan Benang
             </a>{" "}
             dulu supaya ikut ditempel.
           </span>
@@ -159,27 +159,25 @@ export function FormsPage() {
       <ErrorBox error={read.error} />
       {read.busy && <Busy>Membaca form dan mencocokkan dengan datamu</Busy>}
 
-      {analysis && (
+      {analysis && file && (
         <div className="stack-lg">
-          <AutoFilled analysis={analysis} labelOf={labelOf} overrides={overrides} setOverrides={setOverrides} />
+          <FormStory
+            key={`${file.name}-${file.lastModified}`}
+            analysis={analysis}
+            fileName={file.name}
+            answers={answers}
+            setAnswer={(id, v) => setAnswers((a) => ({ ...a, [id]: v }))}
+            remember={remember}
+            setRemember={setRemember}
+            hasSignature={Boolean(personal?.signature)}
+            busy={fill.busy}
+            done={done}
+            onDownload={download}
+            onNotebook={() => goTab("data")}
+          />
+          <ErrorBox error={fill.error} />
 
-          {analysis.plan.questions.length > 0 && (
-            <div className="card">
-              <div className="card-head">
-                <div>
-                  <h2>Yang perlu kamu jawab</h2>
-                  <p>
-                    {answered} dari {analysis.plan.questions.length} terjawab. Yang dikosongkan akan dibiarkan kosong di form.
-                  </p>
-                </div>
-              </div>
-              <div className="qa">
-                {analysis.plan.questions.map((q) => (
-                  <QuestionItem key={q.id} q={q} value={answers[q.id]} onChange={(v) => setAnswers({ ...answers, [q.id]: v })} />
-                ))}
-              </div>
-            </div>
-          )}
+          <AutoFilled analysis={analysis} labelOf={labelOf} overrides={overrides} setOverrides={setOverrides} />
 
           {(analysis.plan.skipped.length > 0 || analysis.plan.notes.length > 0) && (
             <div className="card notes">
@@ -209,25 +207,6 @@ export function FormsPage() {
             </div>
           )}
 
-          <div className="sticky-actions">
-            <label className="check" style={{ padding: "0 8px" }}>
-              <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Simpan jawaban untuk form berikutnya
-            </label>
-            {fill.busy ? (
-              <Busy>Mengisi form</Busy>
-            ) : (
-              <button className="btn primary" onClick={download}>
-                <Download size={17} /> Isi &amp; unduh .docx
-              </button>
-            )}
-          </div>
-          <ErrorBox error={fill.error} />
-          {done && (
-            <div className="alert ok">
-              <Check size={17} style={{ marginTop: 1 }} />
-              <span>{done} Buka di Word atau Google Docs, periksa sekali lagi (terutama kotak centang bergambar dan tata letak), lalu simpan sebagai PDF bila diminta.</span>
-            </div>
-          )}
         </div>
       )}
     </>
@@ -253,8 +232,8 @@ function AutoFilled({
       <button className="disclosure" onClick={() => setOpen(!open)} aria-expanded={open}>
         <FileText size={18} />
         <div style={{ flex: 1, textAlign: "left" }}>
-          <h2>Diisi otomatis: {total} isian</h2>
-          <p className="muted small">Dari Bahan CV, Data diri, dan tanggal hari ini. Buka untuk memeriksa atau mengubah.</p>
+          <h2>Periksa isian otomatis ({total})</h2>
+          <p className="muted small">Dari Bahan CV, buku catatan Benang, dan tanggal hari ini. Buka untuk memeriksa atau mengubah.</p>
         </div>
         <ChevronDown size={18} className="chev" style={{ transform: open ? "rotate(180deg)" : undefined }} />
       </button>
@@ -295,55 +274,21 @@ function AutoFilled({
   );
 }
 
-function QuestionItem({ q, value, onChange }: { q: FormQuestion; value: string | string[] | undefined; onChange: (v: string | string[]) => void }) {
-  const selected = Array.isArray(value) ? value : value ? [value] : [];
-  return (
-    <div className="qa-item">
-      <div className="bubble-q">
-        <b>{q.question}</b>
-        {q.why && <div className="why">{q.why}</div>}
-      </div>
-      <div className={`answer${selected.length ? " filled" : ""}`}>
-        {q.options.length > 0 ? (
-          <div className="quick" role="group" aria-label={q.question}>
-            {q.options.map((o) => {
-              const on = selected.includes(o);
-              return (
-                <button
-                  key={o}
-                  type="button"
-                  aria-pressed={on}
-                  className={on ? "on" : ""}
-                  onClick={() => onChange(q.multi ? (on ? selected.filter((x) => x !== o) : [...selected, o]) : on ? "" : o)}
-                >
-                  {on && <Check size={13} />} {o}
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <textarea aria-label={q.question} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} placeholder="Jawabanmu" />
-        )}
-      </div>
-    </div>
-  );
-}
-
 /** Before a form is chosen: what Benang does with it, a preview, and how ready the saved data is. */
 function FormsIntro({ personal, onData }: { personal: PersonalData | null; onData: () => void }) {
   const items = personal?.personal.items.length ?? 0;
   const ready = [
-    { label: items ? `${items} data diri tersimpan` : "Data diri belum ada", ok: items > 0 },
+    { label: items ? `${items} catatan di buku Benang` : "Buku catatan Benang masih kosong", ok: items > 0 },
     { label: personal?.signature ? "Tanda tangan siap" : "Tanda tangan belum ada", ok: Boolean(personal?.signature) },
     { label: personal?.photo ? "Pas foto siap" : "Pas foto belum ada", ok: Boolean(personal?.photo) },
   ];
   const missing = ready.filter((r) => !r.ok).length;
   return (
-    <section className="forms-intro">
+    <section className="forms-intro" data-tour="forms">
       <div className="stack">
         <BenangSays pose={missing ? "point-right" : "cheer"}>
           <b>Dapat form data diri dari HR?</b>
-          <p>Unggah .docx-nya di bawah. Benang mengisi yang sudah dia tahu dari Bahan CV dan Data diri, lalu menanyakan sisanya sekali saja.</p>
+          <p>Unggah .docx-nya di bawah. Benang mengisi yang sudah dia tahu dari Bahan CV dan buku catatannya, menanyakan sisanya, lalu mencatatnya untuk form berikutnya.</p>
         </BenangSays>
         <ul className="ready-list">
           {ready.map((r) => (
@@ -354,7 +299,7 @@ function FormsIntro({ personal, onData }: { personal: PersonalData | null; onDat
         </ul>
         {missing > 0 && (
           <button className="btn sm" type="button" onClick={onData} style={{ alignSelf: "flex-start" }}>
-            Lengkapi Data diri, form berikutnya makin terisi sendiri
+            Buka buku catatan Benang
           </button>
         )}
       </div>

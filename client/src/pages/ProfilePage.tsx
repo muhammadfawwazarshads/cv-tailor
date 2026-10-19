@@ -138,7 +138,7 @@ export function ProfilePage() {
           </p>
         </div>
       </div>
-      <div className="segmented" role="tablist">
+      <div className="segmented" role="tablist" data-tour="bahan">
         <button role="tab" aria-selected={mode === "story"} className={mode === "story" ? "active" : ""} onClick={() => setMode("story")}>
           Cerita bareng Benang
         </button>

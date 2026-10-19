@@ -354,7 +354,7 @@ export function DemoSign() {
   const t = useClock(3600);
   const draw = prog(t, 300, 1800);
   return (
-    <Win title="Form HR · Data diri" h={158}>
+    <Win title="Form HR · Buku catatan Benang" h={158}>
       <div className="td-sign">
         <svg viewBox="0 0 160 60" className="td-sig">
           <path d={SIG} pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: 1 - draw }} />
