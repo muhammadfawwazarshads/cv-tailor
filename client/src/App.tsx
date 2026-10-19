@@ -70,36 +70,37 @@ function Shell() {
 
   return (
     <div className="shell">
+      <div className="aurora" aria-hidden />
       <aside className={`sidebar${open ? " open" : ""}`}>
         <Brand />
         <nav className="nav">
           <NavLink to="/leads">
-            <Radar size={18} /> Lowongan
+            <span className="ico violet"><Radar size={16} strokeWidth={2.2} /></span> Lowongan
           </NavLink>
           <NavLink to="/applications">
-            <Briefcase size={18} /> Lamaran
+            <span className="ico sky"><Briefcase size={16} strokeWidth={2.2} /></span> Lamaran
           </NavLink>
           <NavLink to="/forms">
-            <FileSignature size={18} /> Isi form
+            <span className="ico coral"><FileSignature size={16} strokeWidth={2.2} /></span> Isi form
           </NavLink>
           <NavLink to="/profile">
-            <UserRound size={18} /> Profil CV
+            <span className="ico mint"><UserRound size={16} strokeWidth={2.2} /></span> Profil CV
           </NavLink>
           <NavLink to="/personal">
-            <IdCard size={18} /> Data pribadi
+            <span className="ico amber"><IdCard size={16} strokeWidth={2.2} /></span> Data pribadi
           </NavLink>
           {isAdmin && (
             <>
               <div className="nav-label">{STANDALONE ? "Pengaturan" : "Pengaturan admin"}</div>
               <NavLink to="/admin/providers">
-                <Cpu size={18} /> Provider AI
+                <span className="ico slate"><Cpu size={16} strokeWidth={2.2} /></span> Provider AI
               </NavLink>
               <NavLink to="/admin/usage">
-                <Activity size={18} /> Pemakaian AI
+                <span className="ico slate"><Activity size={16} strokeWidth={2.2} /></span> Pemakaian AI
               </NavLink>
               {!STANDALONE && (
                 <NavLink to="/admin/users">
-                  <Users size={18} /> Pengguna
+                  <span className="ico slate"><Users size={16} strokeWidth={2.2} /></span> Pengguna
                 </NavLink>
               )}
             </>

@@ -27,6 +27,7 @@ export function AuthPage() {
 
   return (
     <div className="auth">
+      <div className="aurora" aria-hidden />
       <section className="auth-story">
         <Brand />
         <div>
