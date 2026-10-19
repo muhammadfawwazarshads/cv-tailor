@@ -191,9 +191,9 @@ export function DemoPaste() {
 }
 
 const LEADS = [
-  { role: "DevOps Engineer", co: "PT Nusantara Digital", fit: 92, size: "200–500 orang", rec: "Layak daftar" },
-  { role: "Cloud Engineer", co: "Bank Sinar Jaya", fit: 74, size: "1.000+ orang", rec: "Coba aja" },
-  { role: "IT Support", co: "PT Karir Cepat", fit: 38, size: "Tidak jelas", rec: "Lewati", flag: "Minta biaya rekrutmen" },
+  { role: "DevOps Engineer", co: "PT Nusantara Digital", fit: 92, have: 5, of: 5, size: "200–500 orang", rec: "Layak daftar" },
+  { role: "Cloud Engineer", co: "Bank Sinar Jaya", fit: 74, have: 3, of: 5, size: "1.000+ orang", rec: "Coba aja" },
+  { role: "IT Support", co: "PT Karir Cepat", fit: 38, have: 2, of: 5, size: "Tidak jelas", rec: "Lewati", flag: "Minta biaya rekrutmen" },
 ];
 
 // Color stays a small status dot; numbers are monochrome.
@@ -224,9 +224,11 @@ export function DemoResults() {
                 )}
               </div>
               <div className="td-li-score">
-                <b>{Math.round(l.fit * prog(t, at, 900))}</b>
-                <span>
+                <b>
                   <i style={{ background: fitColor(l.fit) }} /> {l.rec}
+                </b>
+                <span>
+                  {Math.round(l.have * prog(t, at, 900))} dari {l.of} syarat ada di bahanmu
                 </span>
               </div>
             </div>

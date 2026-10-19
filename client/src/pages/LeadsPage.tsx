@@ -123,7 +123,7 @@ export function LeadsPage() {
       <section className="hero">
         <Mascot size={96} pose="idle" className="hero-mascot" />
         <span className="eyebrow">Langkah 2 · Ukur lowongan</span>
-        <h1>Lowongan mana yang mau dinilai?</h1>
+        <h1>Lowongan mana yang mau diukur?</h1>
       </section>
       <PasteBox onAdded={added} />
       {notice && <Toast text={notice} onDone={() => setNotice(null)} />}
@@ -133,7 +133,7 @@ export function LeadsPage() {
         <Loading />
       ) : leads.length === 0 ? null : (
         <>
-          <div className="section-title">Hasil penilaian</div>
+          <div className="section-title">Hasil ukur</div>
           <div className="toolbar">
             <div className="segmented" role="tablist">
               {TABS.map((t) => (
@@ -168,7 +168,7 @@ export function LeadsPage() {
                 </div>
               </div>
               <div className="pp-row">
-                <span className="pp-label">Skor minimal</span>
+                <span className="pp-label">Kecocokan minimal</span>
                 <div className="seg-mini">
                   {[0, 50, 70].map((v) => (
                     <button key={v} type="button" aria-pressed={filters.minFit === v} className={filters.minFit === v ? "on" : ""} onClick={() => set({ minFit: v })}>
@@ -180,7 +180,7 @@ export function LeadsPage() {
               <div className="pp-row">
                 <span className="pp-label">Urutkan</span>
                 <div className="seg-mini">
-                  <button type="button" className={filters.sort === "fit" ? "on" : ""} onClick={() => set({ sort: "fit" })}>Paling cocok</button>
+                  <button type="button" className={filters.sort === "fit" ? "on" : ""} onClick={() => set({ sort: "fit" })}>Paling layak</button>
                   <button type="button" className={filters.sort === "new" ? "on" : ""} onClick={() => set({ sort: "new" })}>Terbaru</button>
                 </div>
               </div>
@@ -301,6 +301,12 @@ const STARTERS = [
   { title: "Tempel postingan rekrutmen", text: "Postingan HR atau agensi di feed LinkedIn.", tone: "c", icon: Megaphone },
 ];
 
+/** "3 dari 5 syarat ada di bahanmu" when the AI listed requirements, otherwise the plain fit score. */
+function coverage(d: LeadRow["data"]) {
+  const total = d.matched.length + d.missing.length;
+  return total ? `${d.matched.length} dari ${total} syarat ada di bahanmu` : `cocok ${d.fitScore}%`;
+}
+
 function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow; open: boolean; onToggle: () => void; onChange: (l: LeadRow) => void; onDelete: () => void }) {
   const d = lead.data;
   const navigate = useNavigate();
@@ -344,7 +350,6 @@ function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow;
             {meta && <span className="muted"> · {meta}</span>}
           </div>
           <div className="lead-meta">
-            <span className={`rec ${d.recommendation}`}>{REC[d.recommendation].label}</span>
             <span>{TIER[d.companyTier].label}</span>
             {d.category && <span>{d.category}</span>}
             {d.manufacturing && (
@@ -365,9 +370,11 @@ function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow;
             )}
           </div>
         </div>
-        <div className="score">
-          <b>{d.fitScore}</b>
-          <span>kecocokan</span>
+        {/* The filter's verdict leads; the fit number is the reason under it, read as coverage of the
+            job's requirements by Bahan CV (tailoring never adds to it, so it is the ceiling). */}
+        <div className="verdict">
+          <b className={`rec ${d.recommendation}`}>{REC[d.recommendation].label}</b>
+          <span>{coverage(d)}</span>
         </div>
         <ChevronDown size={18} className="chev" />
       </button>
