@@ -683,14 +683,21 @@ th { color: var(--muted); font-weight: 500; }
 .pose-cheer .mascot-bob { animation: mascot-hop 0.9s ease-in-out infinite; }
 .mascot-eye { animation: mascot-blink 4.8s infinite; }
 .mascot-arm { transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.mascot-gaze { transition: transform 0.4s ease; }
+.mascot-gaze, .mascot-brows { transition: transform 0.4s ease; }
+/* Alive while idle: breathe, tilt the head a touch, glance around */
+.mascot-breathe { transform-origin: 120px 250px; animation: mascot-breathe 3.2s ease-in-out infinite; }
+.pose-idle .mascot-breathe, .pose-wave .mascot-breathe { animation: mascot-breathe 3.2s ease-in-out infinite, mascot-tilt 7s ease-in-out infinite; }
+.pose-idle .mascot-look, .pose-wave .mascot-look { animation: mascot-look 6s ease-in-out infinite; }
 .mascot-wave { animation: mascot-wave 1.2s ease-in-out infinite; }
 .auth-mascot { margin: -10px 0 14px -18px; }
 @keyframes mascot-bob { 50% { transform: translateY(-5px); } }
 @keyframes mascot-hop { 50% { transform: translateY(-10px); } }
 @keyframes mascot-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.08); } }
 @keyframes mascot-wave { 50% { transform: rotate(-22deg); } }
-@media (prefers-reduced-motion: reduce) { .mascot-bob, .mascot-eye, .mascot-wave, .pose-cheer .mascot-bob { animation: none; } .mascot-arm, .mascot-gaze { transition: none; } }
+@keyframes mascot-breathe { 50% { transform: scale(1.025, 0.975); } }
+@keyframes mascot-tilt { 0%, 100% { rotate: 0deg; } 30% { rotate: -2.5deg; } 65% { rotate: 2deg; } }
+@keyframes mascot-look { 0%, 18% { transform: translate(0, 0); } 22%, 42% { transform: translate(-4px, -1px); } 46%, 66% { transform: translate(4px, 1px); } 70%, 100% { transform: translate(0, 0); } }
+@media (prefers-reduced-motion: reduce) { .mascot-bob, .mascot-eye, .mascot-wave, .pose-cheer .mascot-bob, .mascot-breathe, .mascot-look { animation: none !important; } .mascot-arm, .mascot-gaze, .mascot-brows { transition: none; } }
 @media (max-width: 900px) { .auth-mascot { width: 104px; height: auto; } }
 
 /* Centered hero (Lowongan) */
