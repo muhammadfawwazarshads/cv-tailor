@@ -1,7 +1,8 @@
-import { Activity, Briefcase, Cpu, FileSignature, IdCard, LogOut, Menu, Radar, Scissors, UserRound, Users } from "lucide-react";
+import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, IdCard, LogOut, Menu, Radar, Scissors, UserRound, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
+import { Tour, tourSeen } from "./components/Tour";
 import { Loading } from "./components/ui";
 import { ProvidersPage } from "./pages/admin/ProvidersPage";
 import { UsagePage } from "./pages/admin/UsagePage";
@@ -60,6 +61,7 @@ function Shell() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
+  const [tour, setTour] = useState(() => !tourSeen());
 
   async function logout() {
     await api("POST", "/api/auth/logout").catch(() => {});
@@ -80,13 +82,13 @@ function Shell() {
           <NavLink to="/applications">
             <Briefcase size={18} strokeWidth={1.8} /><span className="lbl">Lamaran</span>
           </NavLink>
-          <NavLink to="/forms">
+          <NavLink to="/forms" data-tour="nav-forms">
             <FileSignature size={18} strokeWidth={1.8} /><span className="lbl">Isi form</span>
           </NavLink>
           <NavLink to="/profile">
             <UserRound size={18} strokeWidth={1.8} /><span className="lbl">Profil CV</span>
           </NavLink>
-          <NavLink to="/personal">
+          <NavLink to="/personal" data-tour="nav-personal">
             <IdCard size={18} strokeWidth={1.8} /><span className="lbl">Data pribadi</span>
           </NavLink>
           {isAdmin && (
@@ -106,6 +108,10 @@ function Shell() {
             </>
           )}
         </nav>
+        <button className="help-btn" onClick={() => setTour(true)} aria-label="Buka tur aplikasi" title="Tur aplikasi">
+          <CircleHelp size={18} strokeWidth={1.8} />
+          <span className="lbl">Tur aplikasi</span>
+        </button>
         <div className="me">
           <div className="avatar">{(user!.name || user!.email).slice(0, 1).toUpperCase()}</div>
           <div>
@@ -128,7 +134,7 @@ function Shell() {
         </div>
         <div className="topbar">
           {user!.role === "admin" && (
-            <NavLink to="/admin/providers" className="tb-chip">
+            <NavLink to="/admin/providers" className="tb-chip" data-tour="provider">
               <span className="live" aria-hidden /> Provider AI
             </NavLink>
           )}
@@ -137,6 +143,7 @@ function Shell() {
             {user!.name || "Akun"}
           </NavLink>
         </div>
+        {tour && <Tour onClose={() => setTour(false)} />}
         <main className="main">
           <Routes>
             <Route path="/" element={<Navigate to="/applications" replace />} />

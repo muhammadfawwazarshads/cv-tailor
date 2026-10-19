@@ -818,3 +818,45 @@ th { color: var(--muted); font-weight: 500; }
 .modal .card-head .icon-btn { position: absolute; right: -6px; top: -6px; }
 .toolbar .segmented { overflow-x: auto; max-width: 100%; }
 .main { max-width: 720px; }
+
+/* ---------- Guided tour ---------- */
+.help-btn { position: relative; width: 40px; height: 40px; border: none; background: transparent; color: var(--muted); border-radius: 11px; display: grid; place-items: center; cursor: pointer; margin-top: auto; }
+.help-btn:hover { background: var(--surface-2); color: var(--ink); }
+.help-btn .lbl { position: absolute; left: calc(100% + 12px); top: 50%; transform: translate(-4px, -50%); white-space: nowrap; pointer-events: none; background: #1d2232; color: var(--ink); border: 1px solid var(--line-strong); font-size: 12.5px; font-weight: 500; padding: 5px 9px; border-radius: 8px; opacity: 0; transition: opacity .12s, transform .12s; z-index: 50; }
+.help-btn:hover .lbl { opacity: 1; transform: translate(0, -50%); }
+.sidebar .me { margin-top: 4px; }
+@media (max-width: 900px) { .help-btn { width: auto; height: auto; padding: 9px 10px; display: flex; gap: 11px; justify-content: flex-start; } .help-btn .lbl { position: static; opacity: 1; transform: none; background: none; border: none; padding: 0; font-size: 13.5px; color: inherit; } }
+
+.tour { position: fixed; inset: 0; z-index: 100; }
+.tour-catch { position: absolute; inset: 0; }
+.tour-spot {
+  position: absolute; left: 0; top: 0; border-radius: 16px; pointer-events: none; z-index: 1;
+  box-shadow: 0 0 0 9999px rgba(5, 7, 13, 0.72), 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 40px 4px rgba(170, 160, 255, 0.35);
+  transition: transform 0.55s cubic-bezier(.22, 1, .36, 1), width 0.55s cubic-bezier(.22, 1, .36, 1), height 0.55s cubic-bezier(.22, 1, .36, 1), opacity .3s;
+}
+.tour-spot::after { content: ""; position: absolute; inset: -6px; border-radius: 20px; border: 1px solid rgba(190, 175, 255, 0.55); animation: tour-pulse 1.8s ease-out infinite; }
+@keyframes tour-pulse { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.06); } }
+.tour-spot.none { width: 0; height: 0; transform: translate(50vw, 50vh); box-shadow: 0 0 0 9999px rgba(5, 7, 13, 0.78); }
+.tour-spot.none::after { display: none; }
+
+.tour-card {
+  position: absolute; z-index: 2; width: 340px; max-width: calc(100vw - 24px); padding: 18px 18px 14px; border-radius: 16px;
+  background: #171b28; border: 1px solid var(--line-strong); box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,.03);
+  transition: left .45s cubic-bezier(.22, 1, .36, 1), top .45s cubic-bezier(.22, 1, .36, 1);
+  animation: tour-card-in .45s cubic-bezier(.22, 1, .36, 1);
+}
+.tour-card.centered { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 400px; text-align: center; padding: 26px 24px 16px; animation: tour-center-in .5s cubic-bezier(.22, 1, .36, 1); }
+@keyframes tour-card-in { from { opacity: 0; translate: 0 8px; } }
+@keyframes tour-center-in { from { opacity: 0; transform: translate(-50%, -46%) scale(.97); } }
+.tour-card h2 { font-size: 16px; font-weight: 600; margin: 4px 0 6px; }
+.tour-card p { color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+.tour-step { font-size: 11.5px; color: var(--muted); }
+.tour-progress { height: 2px; background: rgba(255,255,255,.08); border-radius: 2px; margin: 14px 0 12px; overflow: hidden; }
+.tour-progress i { display: block; height: 100%; background: var(--iris); transition: width .45s ease; }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; }
+.tour-card.centered .tour-actions { justify-content: center; gap: 8px; }
+.tour-x { position: absolute; top: 8px; right: 8px; }
+.tour-orb { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; position: relative; filter: drop-shadow(0 14px 30px rgba(190, 160, 255, .5)); }
+.tour-orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #8ec5ff, #c7a6ff, #ff9ecf, #ffd9a0, #a4f0d6, #8ec5ff); animation: orb-turn 6s linear infinite; }
+.tour-orb::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.95) 0 6%, rgba(255,255,255,0) 26%), radial-gradient(circle at 50% 50%, transparent 52%, rgba(16,12,40,.55) 100%); }
+@media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card, .tour-progress i { transition: none; animation: none; } .tour-spot::after, .tour-orb::before { animation: none; } }

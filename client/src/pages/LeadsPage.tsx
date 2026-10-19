@@ -194,7 +194,7 @@ export function LeadsPage() {
           )}
 
           {shown.length ? (
-            <div className="leads rows">
+            <div className="leads rows" data-tour="results">
               {shown.map((l) => (
                 <LeadCard key={l.id} lead={l} open={open === l.id} onToggle={() => setOpen(open === l.id ? null : l.id)} onChange={replace} onDelete={() => setLeads((cur) => (cur ?? []).filter((x) => x.id !== l.id))} />
               ))}
@@ -246,7 +246,7 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
   return (
     <>
       {!text && !busy && (
-        <div className="starters">
+        <div className="starters" data-tour="starters">
           {STARTERS.map((st) => (
             <button key={st.title} type="button" className={`starter ${st.tone}`} onClick={pasteClipboard} title={st.text}>
               <b>{st.title}</b>
@@ -255,7 +255,7 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
           ))}
         </div>
       )}
-      <form className="composer chat" onSubmit={submit}>
+      <form className="composer chat" onSubmit={submit} data-tour="composer">
         <textarea
           aria-label="Teks halaman lowongan"
           value={text}

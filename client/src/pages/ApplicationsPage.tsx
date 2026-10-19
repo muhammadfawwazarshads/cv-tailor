@@ -55,7 +55,7 @@ export function ApplicationsPage() {
       ) : apps.length > 0 ? (
         <>
         <div className="section-title">Lamaran terakhir</div>
-        <div className="card flush rows">
+        <div className="card flush rows" data-tour="app-list">
           <div className="app-list">
             {apps.map((a) => (
               <Link key={a.id} to={`/applications/${a.id}`} className="app-row">
@@ -142,7 +142,7 @@ function Stats({ apps, onNew }: { apps: ApplicationSummary[]; onNew: () => void 
   const interviews = apps.filter((a) => a.status === "interview" || a.status === "offer").length;
   const ready = apps.filter((a) => a.versions > 0).length;
   return (
-    <section className="hero">
+    <section className="hero" data-tour="stats">
       <span className="eyebrow">Rata-rata kecocokan</span>
       <div className="mega">
         {avg ?? "0"}
