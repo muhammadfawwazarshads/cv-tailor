@@ -72,6 +72,17 @@ Urutkan provider dengan tombol panah. Contoh pola yang umum: model utama di urut
 
 ## Production
 
+### GitHub Codespaces (paling cepat, tanpa akun hosting)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/muhammadfawwazarshads/cv-tailor?quickstart=1)
+
+Klik tombol di atas, lalu **Create codespace**. Dependensi di-install dan aplikasi di-build otomatis (sekitar 3 sampai 5 menit), kemudian server jalan di port 3000 dan tab browser terbuka sendiri. Kalau tidak terbuka, buka tab **Ports** dan klik ikon globe di baris port 3000.
+
+- Mode demo aktif (`ENABLE_MOCK_LLM=true`), jadi alurnya bisa dicoba dengan provider tipe Mock. Provider asli tetap bisa ditambahkan.
+- Data disimpan di PGlite dalam folder `data/` di codespace dan tetap ada selama codespace tidak dihapus.
+- Port forwarding bersifat privat secara default: hanya akun GitHub kamu yang bisa membuka URL-nya.
+- Codespace berhenti sendiri setelah tidak dipakai. Saat dibuka lagi, server otomatis jalan kembali. Log server ada di `/tmp/cv-tailor.log`.
+
 ### Render (sekali klik, gratis)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/muhammadfawwazarshads/cv-tailor)
@@ -105,6 +116,7 @@ Lihat `.env.example`. Yang penting:
 - `ALLOW_REGISTRATION=false`: menutup pendaftaran publik setelah akun admin dibuat.
 - `DAILY_AI_LIMIT`: batas permintaan AI sukses per pengguna per 24 jam (0 = tanpa batas).
 - `LLM_TIMEOUT_MS`: batas waktu satu permintaan sebelum pindah ke provider berikutnya.
+- `ALLOWED_ORIGINS`: origin tambahan (dipisah koma) yang boleh memanggil API, misalnya saat aplikasi diakses lewat proxy dengan domain berbeda.
 
 ## Pengujian
 

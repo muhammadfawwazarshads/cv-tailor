@@ -28,7 +28,11 @@ app.use((_req, res, next) => {
 app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   const origin = req.get("origin");
-  if (origin && new URL(origin).host !== req.get("host")) return res.status(403).json({ error: "Origin tidak diizinkan." });
+  if (origin) {
+    const host = new URL(origin).host;
+    const sameHost = host === req.get("host") || host === req.get("x-forwarded-host");
+    if (!sameHost && !config.allowedOrigins.includes(origin)) return res.status(403).json({ error: "Origin tidak diizinkan." });
+  }
   next();
 });
 

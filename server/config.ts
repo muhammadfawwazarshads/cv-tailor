@@ -18,6 +18,15 @@ function loadSecret(): string {
   return fs.readFileSync(file, "utf8").trim();
 }
 
+function allowedOrigins(): string[] {
+  const list = (process.env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
+  // GitHub Codespaces exposes forwarded ports on https://<codespace>-<port>.<domain>
+  const cs = process.env.CODESPACE_NAME;
+  const domain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
+  if (cs && domain) list.push(`https://${cs}-${process.env.PORT || 3000}.${domain}`, `https://${cs}-5173.${domain}`);
+  return list.map((o) => o.replace(/\/+$/, ""));
+}
+
 const int = (v: string | undefined, d: number) => (v && Number.isFinite(Number(v)) ? Number(v) : d);
 
 export const config = {
@@ -32,4 +41,6 @@ export const config = {
   /** Successful AI calls allowed per user per day (0 = unlimited). Admins are not limited. */
   dailyAiLimit: int(process.env.DAILY_AI_LIMIT, 50),
   maxUploadMb: int(process.env.MAX_UPLOAD_MB, 10),
+  /** Extra origins allowed to call the API (comma separated), e.g. a public URL behind a proxy. */
+  allowedOrigins: allowedOrigins(),
 };
