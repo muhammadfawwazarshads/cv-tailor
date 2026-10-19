@@ -277,7 +277,7 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
             </span>
           )}
         </div>
-        {a.questions.length === 0 && <p className="muted">Profilmu sudah cukup jelas untuk lowongan ini. Langsung buat CV.</p>}
+        {a.questions.length === 0 && <p className="muted">Bahan CV-mu sudah cukup jelas untuk lowongan ini. Langsung jahit CV-nya.</p>}
         <div className="qa">
           {a.questions.map((q) => {
             const val = draft[q.id] ?? "";

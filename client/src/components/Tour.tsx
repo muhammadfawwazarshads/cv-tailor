@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Compone
 import { useLocation, useNavigate } from "react-router-dom";
 import { APP_NAME } from "../brand";
 import { Mascot, type MascotPose } from "./Mascot";
-import { DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
+import { DemoBahan, DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
 
 /**
  * Guided product tour: a spotlight glides from one part of the app to the next while a card explains it.
@@ -18,6 +18,13 @@ const STEPS: Step[] = [
     title: "Halo, aku Benang",
     demo: DemoFlow,
     body: `Di ${APP_NAME}, CV-mu dijahit ulang untuk tiap lowongan, seperti penjahit mengepas baju: diukur dulu, baru dipotong. Alurnya empat langkah, tur ini kurang dari satu menit.`,
+  },
+  {
+    target: '[data-tour="nav-bahan"]',
+    title: "Siapkan bahannya dulu",
+    demo: DemoBahan,
+    body: "Bahan CV adalah semua pengalaman, skill, dan pendidikanmu. Impor CV lamamu sekali, Benang memilahnya. Semua CV nanti dijahit dari bahan ini, tanpa ditambah-tambah.",
+    place: "right",
   },
   {
     route: "/leads",
@@ -61,16 +68,16 @@ const STEPS: Step[] = [
   },
   {
     target: '[data-tour="nav-forms"]',
-    title: "Form data diri perusahaan",
+    title: "Form HR",
     demo: DemoForm,
-    body: "Unggah form .docx dari HR. Yang sudah diketahui diisi otomatis, sisanya ditanyakan sekali dan diingat untuk form berikutnya.",
+    body: "Unggah form data diri .docx dari HR. Benang mengisinya dari Bahan CV dan Data diri, yang belum diketahui ditanyakan sekali lalu diingat.",
     place: "right",
   },
   {
-    target: '[data-tour="nav-personal"]',
+    target: '[data-tour="nav-forms"]',
     title: "Simpan tanda tanganmu",
     demo: DemoSign,
-    body: "Gambar atau unggah tanda tangan sekali di Data pribadi. Tanda tangan otomatis ditempel di setiap form.",
+    body: "Di Form HR, tab Data diri: gambar atau unggah tanda tangan sekali. Benang menempelnya di setiap form.",
     place: "right",
   },
   {

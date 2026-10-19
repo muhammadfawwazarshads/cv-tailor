@@ -83,6 +83,37 @@ export function DemoFlow() {
   );
 }
 
+const BAHAN = [
+  { k: "Identitas", v: "Rani Pratama · rani@mail.com" },
+  { k: "Pengalaman", v: "3 peran, 14 poin" },
+  { k: "Skill", v: "Docker, Go, AWS, +11" },
+  { k: "Pendidikan", v: "S1 Teknik Informatika" },
+];
+
+export function DemoBahan() {
+  const t = useClock(4200);
+  const read = t > 500 && t < 1500;
+  return (
+    <Win title="Bahan CV" h={168}>
+      <div className={`td-file${t > 300 ? " in" : ""}`}>
+        <FileText size={14} /> CV_Rani_2025.pdf
+        <span>{t < 500 ? "" : read ? "Benang memilah…" : "Terbaca"}</span>
+      </div>
+      <div className="td-bahan">
+        {BAHAN.map((b, k) => {
+          const at = 1500 + k * 450;
+          return (
+            <div key={b.k} className={t > at ? "ok" : ""}>
+              <span>{b.k}</span>
+              <b>{t > at ? b.v : "Kosong"}</b>
+            </div>
+          );
+        })}
+      </div>
+    </Win>
+  );
+}
+
 export function DemoCopy() {
   const t = useClock(4400);
   const sel = prog(t, 700, 700);
@@ -323,7 +354,7 @@ export function DemoSign() {
   const t = useClock(3600);
   const draw = prog(t, 300, 1800);
   return (
-    <Win title="Data pribadi · Tanda tangan" h={158}>
+    <Win title="Form HR · Data diri" h={158}>
       <div className="td-sign">
         <svg viewBox="0 0 160 60" className="td-sig">
           <path d={SIG} pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: 1 - draw }} />

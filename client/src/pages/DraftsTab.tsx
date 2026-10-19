@@ -39,7 +39,7 @@ export function DraftsTab({ app, hasCv, onApp }: { app: Application; hasCv: bool
         <p className="muted">{meta.hint}</p>
         {!hasCv && kind !== "follow_up" && (
           <div className="alert warn">
-            <span>CV untuk lowongan ini belum dibuat, jadi draft memakai profil master. Hasilnya lebih tajam kalau CV-nya sudah ada.</span>
+            <span>CV untuk lowongan ini belum dibuat, jadi draft memakai Bahan CV. Hasilnya lebih tajam kalau CV-nya sudah ada.</span>
           </div>
         )}
         <div className="row" style={{ alignItems: "flex-end" }}>

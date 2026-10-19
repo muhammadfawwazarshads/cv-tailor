@@ -1,9 +1,11 @@
 import { Eraser, ImageUp, PenLine, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api, formatDate, type PersonalData } from "../api";
+import { BenangSays } from "../components/BenangSays";
 import { ErrorBox, Loading, useAction } from "../components/ui";
 
-export function PersonalPage() {
+/** "Data diri" tab of Form HR: what Benang remembers for company forms (answers, signature, photo). */
+export function PersonalTab() {
   const [data, setData] = useState<PersonalData | null>(null);
   const [items, setItems] = useState<{ label: string; value: string }[]>([]);
   const [dirty, setDirty] = useState(false);
@@ -38,11 +40,30 @@ export function PersonalPage() {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Data pribadi</h1>
-          <p>Dipakai untuk mengisi form lamaran perusahaan. Isinya terkumpul sendiri dari jawabanmu saat mengisi form, dan bisa kamu ubah di sini.</p>
-        </div>
+      <div style={{ marginBottom: 18 }}>
+        <BenangSays pose={!data.signature || !data.photo || !items.length ? "point-down" : "cheer"}>
+          {!data.signature ? (
+            <>
+              <b>Tanda tangannya belum ada.</b>
+              <p>Gambar sekali di bawah, Benang menempelnya di setiap form. Tidak perlu cetak, tanda tangan, lalu scan lagi.</p>
+            </>
+          ) : !data.photo ? (
+            <>
+              <b>Tinggal pas foto.</b>
+              <p>Banyak form HR punya kotak foto 3x4. Unggah sekali, Benang memasangnya sendiri.</p>
+            </>
+          ) : !items.length ? (
+            <>
+              <b>Belum ada jawaban yang Benang ingat.</b>
+              <p>Isi satu form di tab Isi form. NIK, alamat, dan kontak darurat yang kamu jawab tersimpan di sini untuk form berikutnya.</p>
+            </>
+          ) : (
+            <>
+              <b>Data dirimu lengkap.</b>
+              <p>{items.length} jawaban, tanda tangan, dan pas foto siap. Form berikutnya hampir terisi sendiri.</p>
+            </>
+          )}
+        </BenangSays>
       </div>
       <ErrorBox error={save.error} />
       <div className="grid-2" style={{ alignItems: "start", marginBottom: 18 }}>

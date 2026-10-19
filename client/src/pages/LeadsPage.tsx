@@ -289,7 +289,7 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
           )}
         </div>
         <ErrorBox error={error} />
-        {busy && <Busy>Memilah lowongan, menilai perusahaan, dan mencocokkan dengan profilmu</Busy>}
+        {busy && <Busy>Mengukur lowongan, menilai perusahaan, dan mencocokkan dengan Bahan CV-mu</Busy>}
       </form>
     </>
   );

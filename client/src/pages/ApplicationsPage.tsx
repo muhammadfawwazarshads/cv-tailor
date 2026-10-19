@@ -39,7 +39,7 @@ export function ApplicationsPage() {
       {!hasProfile && (
         <div className="alert warn" style={{ marginBottom: 16 }}>
           <span>
-            Profil CV kamu masih kosong. <Link to="/profile">Impor CV lamamu</Link> dulu supaya AI punya bahan.
+            Bahan CV-mu masih kosong. <Link to="/profile">Impor CV lamamu</Link> dulu supaya Benang punya bahan untuk dijahit.
           </span>
         </div>
       )}
@@ -146,7 +146,7 @@ function NewApplication() {
         )}
       </div>
       <ErrorBox error={error} />
-      {busy && <Busy>Membaca lowongan dan membandingkan dengan profilmu</Busy>}
+      {busy && <Busy>Mengukur lowongan dan membandingkan dengan Bahan CV-mu</Busy>}
     </form>
   );
 }

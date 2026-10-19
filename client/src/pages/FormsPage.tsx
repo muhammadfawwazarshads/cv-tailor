@@ -1,8 +1,11 @@
-import { Check, ChevronDown, Download, FileText, PenLine, Upload } from "lucide-react";
+import { Check, ChevronDown, Download, FileText, PenLine, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { api, downloadBase64, type FormPlan, type FormQuestion, type FormSlot, type PersonalData } from "../api";
 import { Busy, ErrorBox, useAction } from "../components/ui";
+import { PersonalTab } from "./PersonalPage";
+import { BenangSays } from "../components/BenangSays";
+import { DemoForm } from "../components/TourDemos";
 
 type Analysis = { slots: FormSlot[]; plan: FormPlan };
 type AnswerMap = Record<string, string | string[]>;
@@ -42,10 +45,14 @@ export function FormsPage() {
   const [done, setDone] = useState<string | null>(null);
   const read = useAction();
   const fill = useAction();
+  // Two tabs: fill a company form, or review what Benang remembers for forms (Data diri).
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "data" ? "data" : "fill";
+  const goTab = (t: "fill" | "data") => setParams(t === "data" ? { tab: "data" } : {}, { replace: true });
 
   useEffect(() => {
     api<PersonalData>("GET", "/api/personal").then(setPersonal, () => {});
-  }, []);
+  }, [tab]);
 
   async function analyze(f: File) {
     setFile(f);
@@ -86,25 +93,60 @@ export function FormsPage() {
   const labelOf = useMemo(() => new Map(analysis?.slots.map((s) => [s.id, s.label]) ?? []), [analysis]);
   const answered = analysis ? analysis.plan.questions.filter((q) => [answers[q.id]].flat().some((x) => x && String(x).trim())).length : 0;
 
-  return (
+  const head = (
     <>
       <div className="page-head">
         <div>
-          <h1>Isi form</h1>
+          <h1>Form HR</h1>
           <p>
-            Unggah form data diri dari perusahaan (.docx). Yang sudah diketahui diisi otomatis dari profil dan jawaban tersimpan, sisanya ditanyakan
-            di sini. Hasilnya .docx terisi lengkap dengan tanda tangan.
+            Form data diri dari perusahaan (.docx) diisi Benang dari Bahan CV dan Data diri-mu. Yang belum diketahui ditanyakan sekali, lalu diingat
+            untuk form berikutnya.
           </p>
         </div>
       </div>
+      <div className="segmented" role="tablist">
+        <button role="tab" aria-selected={tab === "fill"} className={tab === "fill" ? "active" : ""} onClick={() => goTab("fill")}>
+          Isi form
+        </button>
+        <button role="tab" aria-selected={tab === "data"} className={tab === "data" ? "active" : ""} onClick={() => goTab("data")}>
+          Data diri {personal && personal.personal.items.length > 0 && <span className="n">{personal.personal.items.length}</span>}
+        </button>
+      </div>
+    </>
+  );
 
-      {personal && !personal.signature && (
+  if (tab === "data") {
+    return (
+      <>
+        {head}
+        <PersonalTab />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {head}
+
+      {personal && !personal.signature && (file || analysis) && (
         <div className="alert warn" style={{ marginBottom: 16 }}>
           <span>
-            Tanda tangan belum ada. <Link to="/personal">Simpan tanda tanganmu</Link> dulu supaya ikut ditempel.
+            Tanda tangan belum ada.{" "}
+            <a
+              href="?tab=data"
+              onClick={(e) => {
+                e.preventDefault();
+                goTab("data");
+              }}
+            >
+              Simpan tanda tanganmu di Data diri
+            </a>{" "}
+            dulu supaya ikut ditempel.
           </span>
         </div>
       )}
+
+      {!file && !analysis && <FormsIntro personal={personal} onData={() => goTab("data")} />}
 
       <label className="file-drop" style={{ marginBottom: 18 }}>
         <Upload size={20} />
@@ -212,7 +254,7 @@ function AutoFilled({
         <FileText size={18} />
         <div style={{ flex: 1, textAlign: "left" }}>
           <h2>Diisi otomatis: {total} isian</h2>
-          <p className="muted small">Dari profil CV, jawaban tersimpan, dan tanggal hari ini. Buka untuk memeriksa atau mengubah.</p>
+          <p className="muted small">Dari Bahan CV, Data diri, dan tanggal hari ini. Buka untuk memeriksa atau mengubah.</p>
         </div>
         <ChevronDown size={18} className="chev" style={{ transform: open ? "rotate(180deg)" : undefined }} />
       </button>
@@ -284,5 +326,41 @@ function QuestionItem({ q, value, onChange }: { q: FormQuestion; value: string |
         )}
       </div>
     </div>
+  );
+}
+
+/** Before a form is chosen: what Benang does with it, a preview, and how ready the saved data is. */
+function FormsIntro({ personal, onData }: { personal: PersonalData | null; onData: () => void }) {
+  const items = personal?.personal.items.length ?? 0;
+  const ready = [
+    { label: items ? `${items} data diri tersimpan` : "Data diri belum ada", ok: items > 0 },
+    { label: personal?.signature ? "Tanda tangan siap" : "Tanda tangan belum ada", ok: Boolean(personal?.signature) },
+    { label: personal?.photo ? "Pas foto siap" : "Pas foto belum ada", ok: Boolean(personal?.photo) },
+  ];
+  const missing = ready.filter((r) => !r.ok).length;
+  return (
+    <section className="forms-intro">
+      <div className="stack">
+        <BenangSays pose={missing ? "point-right" : "cheer"}>
+          <b>Dapat form data diri dari HR?</b>
+          <p>Unggah .docx-nya di bawah. Benang mengisi yang sudah dia tahu dari Bahan CV dan Data diri, lalu menanyakan sisanya sekali saja.</p>
+        </BenangSays>
+        <ul className="ready-list">
+          {ready.map((r) => (
+            <li key={r.label} className={r.ok ? "ok" : ""}>
+              {r.ok ? <Check size={13} /> : <X size={13} />} {r.label}
+            </li>
+          ))}
+        </ul>
+        {missing > 0 && (
+          <button className="btn sm" type="button" onClick={onData} style={{ alignSelf: "flex-start" }}>
+            Lengkapi Data diri, form berikutnya makin terisi sendiri
+          </button>
+        )}
+      </div>
+      <div className="forms-preview" aria-hidden>
+        <DemoForm />
+      </div>
+    </section>
   );
 }

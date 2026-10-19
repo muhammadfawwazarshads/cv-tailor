@@ -1,4 +1,4 @@
-import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, IdCard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Radar, UserRound, Users } from "lucide-react";
+import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, Layers, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Radar, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
@@ -15,7 +15,6 @@ import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { AuthPage } from "./pages/AuthPage";
 import { FormsPage } from "./pages/FormsPage";
 import { LeadsPage } from "./pages/LeadsPage";
-import { PersonalPage } from "./pages/PersonalPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
 type AuthCtx = { user: User | null; setUser: (u: User | null) => void; welcoming: boolean };
@@ -118,13 +117,10 @@ function Shell() {
             <Briefcase size={18} strokeWidth={1.8} /><span className="lbl">Lamaran</span>
           </NavLink>
           <NavLink to="/forms" data-tour="nav-forms">
-            <FileSignature size={18} strokeWidth={1.8} /><span className="lbl">Isi form</span>
+            <FileSignature size={18} strokeWidth={1.8} /><span className="lbl">Form HR</span>
           </NavLink>
-          <NavLink to="/profile">
-            <UserRound size={18} strokeWidth={1.8} /><span className="lbl">Profil CV</span>
-          </NavLink>
-          <NavLink to="/personal" data-tour="nav-personal">
-            <IdCard size={18} strokeWidth={1.8} /><span className="lbl">Data pribadi</span>
+          <NavLink to="/profile" data-tour="nav-bahan">
+            <Layers size={18} strokeWidth={1.8} /><span className="lbl">Bahan CV</span>
           </NavLink>
           {isAdmin && (
             <>
@@ -192,7 +188,8 @@ function Shell() {
             <Route path="/applications/:id" element={<ApplicationPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/forms" element={<FormsPage />} />
-            <Route path="/personal" element={<PersonalPage />} />
+            {/* Data diri now lives inside Form HR */}
+            <Route path="/personal" element={<Navigate to="/forms?tab=data" replace />} />
             {isAdmin && (
               <>
                 <Route path="/admin/providers" element={<ProvidersPage />} />

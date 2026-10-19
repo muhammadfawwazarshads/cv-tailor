@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, Check, Download, FileUp, Plus, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, formatDate, STANDALONE, type Fact, type Profile } from "../api";
+import { BenangSays } from "../components/BenangSays";
 import { Busy, ErrorBox, Field, Loading, Spinner, useAction } from "../components/ui";
 
 type Exp = Profile["experience"][number];
@@ -59,9 +60,9 @@ function ItemTools({ onUp, onDown, onRemove }: { onUp: () => void; onDown: () =>
   );
 }
 
-function Section({ title, hint, action, children }: { title: string; hint?: string; action?: ReactNode; children: ReactNode }) {
+function Section({ id, title, hint, action, children }: { id?: string; title: string; hint?: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <div className="card stack">
+    <div className="card stack" id={id}>
       <div className="card-head" style={{ marginBottom: 0 }}>
         <div>
           <h2>{title}</h2>
@@ -125,12 +126,16 @@ export function ProfilePage() {
     <>
       <div className="page-head">
         <div>
-          <h1>Profil CV</h1>
-          <p>Semua CV dibuat dari halaman ini. Tulis pengalamanmu selengkap mungkin, termasuk angka. AI hanya memilih dan merangkai ulang, tidak pernah menambah.</p>
+          <h1>Bahan CV</h1>
+          <p>
+            Semua CV dijahit Benang dari bahan ini. Tulis pengalamanmu selengkap mungkin, termasuk angka. Benang hanya memotong dan merangkai, tidak
+            pernah menambah bahan.
+          </p>
         </div>
       </div>
 
       <div className="stack">
+        <BahanStock profile={profile} />
         <ImportCard
           onImported={(p) => {
             setProfile(p);
@@ -139,7 +144,7 @@ export function ProfilePage() {
           }}
         />
 
-        <Section title="Identitas & kontak">
+        <Section id="bahan-identitas" title="Identitas & kontak">
           <div className="grid-2">
             <Field label="Nama lengkap">
               <input type="text" value={profile.name} onChange={(e) => set({ name: e.target.value })} />
@@ -169,6 +174,7 @@ export function ProfilePage() {
         </Section>
 
         <Section
+          id="bahan-skill"
           title="Skill"
           hint="Kelompokkan per kategori. Pisahkan item dengan koma."
           action={
@@ -205,6 +211,7 @@ export function ProfilePage() {
         </Section>
 
         <Section
+          id="bahan-pengalaman"
           title="Pengalaman"
           hint="Kerja, magang, freelance, organisasi. Satu bullet per baris. Tulis selengkap mungkin, termasuk angka."
           action={
@@ -268,6 +275,7 @@ export function ProfilePage() {
         </Section>
 
         <Section
+          id="bahan-pendidikan"
           title="Pendidikan"
           action={
             <button
@@ -314,6 +322,7 @@ export function ProfilePage() {
         </Section>
 
         <Section
+          id="bahan-project"
           title="Project"
           action={
             <button
@@ -367,7 +376,7 @@ export function ProfilePage() {
               "Ada perubahan yang belum disimpan"
             ) : saved ? (
               <>
-                <Check size={16} /> Profil tersimpan
+                <Check size={16} /> Bahan tersimpan
               </>
             ) : updatedAt ? (
               `Terakhir disimpan ${formatDate(updatedAt)}`
@@ -377,7 +386,7 @@ export function ProfilePage() {
           </span>
           <button className="btn primary" onClick={doSave} disabled={save.busy || !dirty}>
             {save.busy && <Spinner />}
-            Simpan profil
+            Simpan bahan
           </button>
         </div>
 
@@ -385,6 +394,96 @@ export function ProfilePage() {
         {STANDALONE && <BackupCard />}
       </div>
     </>
+  );
+}
+
+type Check = { ok: boolean; tip: string; target: string };
+
+/** The material checks, in the order worth fixing; the first one that fails is Benang's next tip. */
+function bahanChecks(p: Profile): Check[] {
+  const skillCount = p.skills.reduce((n, g) => n + g.items.split(",").filter((x) => x.trim()).length, 0);
+  const bullets = p.experience.flatMap((e) => e.bullets);
+  const noNumber = bullets.filter((b) => !/\d/.test(b)).length;
+  const thin = p.experience.find((e) => e.bullets.length < 2);
+  return [
+    { ok: Boolean(p.name && p.contact.email), tip: "Isi nama dan email dulu, tanpa itu CV tidak bisa dikirim.", target: "bahan-identitas" },
+    { ok: p.experience.length > 0, tip: "Belum ada pengalaman. Kerja, magang, organisasi, atau freelance semuanya dihitung.", target: "bahan-pengalaman" },
+    {
+      ok: !thin,
+      tip: `Pengalaman${thin?.organization ? ` di ${thin.organization}` : ""} baru ${thin?.bullets.length ?? 0} poin. Tambah apa yang kamu kerjakan dan hasilnya.`,
+      target: "bahan-pengalaman",
+    },
+    {
+      ok: bullets.length > 0 && noNumber <= bullets.length / 2,
+      tip: `${noNumber} dari ${bullets.length} poin belum ada angkanya. Jumlah user, persen, atau waktu bikin poin lebih meyakinkan.`,
+      target: "bahan-pengalaman",
+    },
+    { ok: skillCount >= 5, tip: `Skill baru ${skillCount}. Tulis tools dan bahasa yang benar-benar pernah kamu pakai.`, target: "bahan-skill" },
+    { ok: Boolean(p.summary.trim()), tip: "Ringkasan masih kosong. Dua kalimat cukup, Benang menyesuaikannya per lowongan.", target: "bahan-identitas" },
+    { ok: p.education.length > 0, tip: "Pendidikan belum diisi. Banyak lowongan menyaring dari sini.", target: "bahan-pendidikan" },
+    { ok: p.projects.length > 0, tip: "Belum ada project. Project pribadi atau tugas kuliah juga bisa jadi bahan.", target: "bahan-project" },
+  ];
+}
+
+function jumpTo(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.classList.remove("flash");
+  void el.offsetWidth;
+  el.classList.add("flash");
+  // an empty section has no field yet, so land on its add button instead
+  setTimeout(() => (el.querySelector("input, textarea, .card-head button") as HTMLElement | null)?.focus({ preventScroll: true }), 450);
+}
+
+/** Benang reads the material and says how ready it is, with the single most useful next step. */
+function BahanStock({ profile }: { profile: Profile }) {
+  const checks = bahanChecks(profile);
+  const score = Math.round((checks.filter((c) => c.ok).length / checks.length) * 100);
+  const next = checks.find((c) => !c.ok);
+  const skillCount = profile.skills.reduce((n, g) => n + g.items.split(",").filter((x) => x.trim()).length, 0);
+  const bullets = profile.experience.reduce((n, e) => n + e.bullets.length, 0);
+  const parts = [
+    { label: "Identitas", value: profile.name && profile.contact.email ? "Lengkap" : profile.name ? "Kontak kosong" : "", ok: Boolean(profile.name && profile.contact.email), target: "bahan-identitas" },
+    { label: "Pengalaman", value: profile.experience.length ? `${profile.experience.length} peran, ${bullets} poin` : "", ok: profile.experience.length > 0, target: "bahan-pengalaman" },
+    { label: "Skill", value: skillCount ? `${skillCount} skill` : "", ok: skillCount > 0, target: "bahan-skill" },
+    { label: "Ringkasan", value: profile.summary.trim() ? "Ada" : "", ok: Boolean(profile.summary.trim()), target: "bahan-identitas" },
+    { label: "Pendidikan", value: profile.education.length ? `${profile.education.length}` : "", ok: profile.education.length > 0, target: "bahan-pendidikan" },
+    { label: "Project", value: profile.projects.length ? `${profile.projects.length}` : "", ok: profile.projects.length > 0, target: "bahan-project" },
+  ];
+  return (
+    <section className="bahan">
+      <BenangSays
+        pose={next ? "point-right" : "cheer"}
+        actions={
+          next && (
+            <button className="btn primary sm" type="button" onClick={() => jumpTo(next.target)}>
+              Isi sekarang
+            </button>
+          )
+        }
+      >
+        <b>{!next ? "Bahannya lengkap. Siap dijahit untuk lowongan apa pun." : score >= 60 ? "Bahannya sudah bisa dijahit. Satu langkah lagi biar makin pas:" : "Bahannya masih tipis. Mulai dari sini:"}</b>
+        {next && <p>{next.tip}</p>}
+      </BenangSays>
+      <div className="bahan-meter" aria-label={`Kualitas bahan ${score}%`}>
+        <span>Kualitas bahan</span>
+        <div className="bahan-thread">
+          <i style={{ width: `${score}%` }} />
+        </div>
+        <b>{score}%</b>
+      </div>
+      <ul className="bahan-parts">
+        {parts.map((p) => (
+          <li key={p.label} className={p.ok ? "ok" : ""}>
+            <button type="button" onClick={() => jumpTo(p.target)}>
+              <span>{p.label}</span>
+              <b>{p.value || "Kosong"}</b>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -410,7 +509,7 @@ function ImportCard({ onImported }: { onImported: (p: Profile) => void }) {
   return (
     <Section
       title="Mulai dari CV lamamu"
-      hint="Unggah PDF atau tempel teksnya. AI mengisi halaman ini, lalu kamu periksa dan simpan."
+      hint="Unggah PDF atau tempel teksnya. Benang memilah isinya ke halaman ini, lalu kamu periksa dan simpan."
       action={
         !open && (
           <button className="btn dark sm" type="button" onClick={() => setOpen(true)}>
@@ -419,7 +518,7 @@ function ImportCard({ onImported }: { onImported: (p: Profile) => void }) {
         )
       }
     >
-      {done && <div className="alert ok">Profil terisi dari CV. Periksa isinya, lalu tekan Simpan profil di bawah.</div>}
+      {done && <div className="alert ok">Bahan terisi dari CV. Periksa isinya, lalu tekan Simpan bahan di bawah.</div>}
       {open && (
         <div className="stack">
           <label className="file-drop">
@@ -470,7 +569,7 @@ function FactsCard() {
   return (
     <Section
       title="Fakta yang sudah kamu konfirmasi"
-      hint="Jawaban dan detail yang pernah kamu berikan. AI memakainya di semua lamaran berikutnya."
+      hint="Jawaban dan detail yang pernah kamu konfirmasi. Ikut jadi bahan di semua lamaran berikutnya."
     >
       <div className="row" style={{ alignItems: "flex-start" }}>
         <textarea

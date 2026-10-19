@@ -1079,3 +1079,51 @@ button.sew-knot:hover { transform: scale(1.1); }
 .empty-rack h2 { font-size: 17px; font-weight: 600; margin-top: 4px; }
 .empty-rack p { color: var(--muted); max-width: 360px; font-size: 13px; margin-bottom: 10px; }
 @media (prefers-reduced-motion: reduce) { .sew-needle, .sewing-stitches, .sewing-needle, .tape-fill, .tape-mark { animation: none; } .sewing-stitches { width: 108px; } }
+
+/* Benang talking: mascot beside a speech bubble */
+.says { display: flex; align-items: center; gap: 6px; }
+.says .mascot { flex: none; margin: -6px -2px -10px -8px; }
+.says-bubble { position: relative; flex: 1; min-width: 0; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line-strong); }
+.says-bubble::before { content: ""; position: absolute; left: -6px; top: 50%; width: 10px; height: 10px; margin-top: -5px; background: inherit; border-left: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); transform: rotate(45deg); background: #191d2a; }
+.says-bubble b { display: block; font-size: 14px; font-weight: 600; }
+.says-bubble p { margin-top: 3px; font-size: 13px; color: var(--ink-2); }
+.says-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+/* Bahan CV: Benang's verdict, a quality thread, and the parts in stock (stitched when filled, chalk when empty) */
+.bahan { padding: 16px 18px; border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.bahan-meter { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
+.bahan-meter b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+.bahan-thread { position: relative; flex: 1; height: 3px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 5px, transparent 5px 10px); }
+.bahan-thread i { position: absolute; left: 0; top: -0.5px; height: 4px; background: repeating-linear-gradient(90deg, var(--iris) 0 7px, transparent 7px 11px); transition: width .6s cubic-bezier(.22, 1, .36, 1); }
+.bahan-parts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.bahan-parts button { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 2px; padding: 9px 11px; border-radius: 10px; background: transparent; border: 1.5px dashed rgba(255, 255, 255, .12); transition: border-color .15s, background .15s; }
+.bahan-parts button:hover { border-color: rgba(255, 255, 255, .28); }
+.bahan-parts span { font-size: 11.5px; color: var(--muted); }
+.bahan-parts b { font-size: 13px; font-weight: 500; color: var(--muted); }
+.bahan-parts li.ok button { border-style: solid; border-color: var(--line-strong); background: rgba(255, 255, 255, .03); box-shadow: inset 3px 0 0 var(--iris); }
+.bahan-parts li.ok b { color: var(--ink); }
+@media (max-width: 600px) { .bahan-parts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .says .mascot { width: 64px; height: auto; } }
+/* the section Benang sends you to lights up briefly */
+.card.flash { animation: card-flash 1.4s ease; scroll-margin-top: 24px; }
+@keyframes card-flash { 0%, 100% { box-shadow: var(--shadow); } 20% { box-shadow: 0 0 0 2px rgba(199, 166, 255, .55), var(--shadow); } }
+[id^="bahan-"] { scroll-margin-top: 24px; }
+/* Form HR before a file is chosen: Benang explains, readiness, and a live preview */
+.forms-intro { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: center; margin-bottom: 18px; padding: 16px 18px; border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--line); }
+.forms-preview { pointer-events: none; }
+.ready-list { list-style: none; margin: 0; padding: 0 0 0 84px; display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--muted); }
+.ready-list li { display: flex; align-items: center; gap: 7px; }
+.ready-list li svg { color: var(--rose); }
+.ready-list li.ok { color: var(--ink-2); }
+.ready-list li.ok svg { color: var(--lime); }
+.forms-intro .btn.sm { margin-left: 84px; }
+@media (max-width: 860px) { .forms-intro { grid-template-columns: 1fr; } .ready-list { padding-left: 0; } .forms-intro .btn.sm { margin-left: 0; } }
+.file-drop { border-style: dashed; }
+.td-file { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: rgba(255,255,255,.035); font-size: 11.5px; opacity: .4; transition: opacity .3s; }
+.td-file.in { opacity: 1; }
+.td-file span { margin-left: auto; color: var(--muted); font-size: 10.5px; }
+.td-bahan { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.td-bahan div { display: flex; flex-direction: column; gap: 1px; padding: 7px 9px; border-radius: 8px; border: 1.5px dashed rgba(255,255,255,.12); transition: all .3s; }
+.td-bahan span { font-size: 10px; color: var(--muted); }
+.td-bahan b { font-size: 11px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-bahan div.ok { border-style: solid; border-color: var(--line-strong); box-shadow: inset 3px 0 0 var(--iris); }
+.td-bahan div.ok b { color: var(--ink); }
