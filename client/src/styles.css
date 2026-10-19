@@ -922,9 +922,9 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 .td-stat { padding: 10px 8px; border-radius: 10px; background: rgba(255,255,255,.035); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; }
 .td-stat b { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .td-stat span { color: var(--muted); font-size: 10.5px; }
-.td-pipe { display: flex; gap: 6px; margin-top: 14px; }
-.td-pipe span { flex: 1; text-align: center; padding: 6px 0; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 10.5px; transition: all .35s; }
-.td-pipe span.on { border-color: var(--line-strong); color: var(--ink); background: rgba(255,255,255,.06); }
+.td-track { margin-top: 18px; }
+.td-stage-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 11px; color: var(--muted); }
+.sewing-cloth.mini { display: inline-block; flex: none; transform: scale(.55); transform-origin: left center; margin-right: -50px; }
 
 .td-chat { display: flex; flex-direction: column; gap: 6px; }
 .td-q, .td-a { max-width: 84%; padding: 6px 10px; font-size: 11.5px; line-height: 1.4; animation: tour-fade .25s ease; }

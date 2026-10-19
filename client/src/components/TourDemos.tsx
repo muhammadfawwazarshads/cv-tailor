@@ -1,5 +1,6 @@
 import { Check, Clipboard, FileText, Flag, Send, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { Needle, SewTrack } from "./Sewing";
 
 /**
  * Small looping animations for the tour: each one plays a step with example data
@@ -145,7 +146,13 @@ export function DemoPaste() {
       </div>
       {t > send + 250 && (
         <div className="td-status">
-          <span className="spinner" /> Menilai 3 lowongan…
+          <span className="sewing-cloth mini">
+            <span className="sewing-stitches" />
+            <span className="sewing-needle">
+              <Needle />
+            </span>
+          </span>
+          Benang lagi mengukur 3 lowongan…
         </div>
       )}
     </Win>
@@ -166,7 +173,7 @@ function fitColor(v: number) {
 export function DemoResults() {
   const t = useClock(3400);
   return (
-    <Win title="Hasil penilaian">
+    <Win title="Hasil ukur">
       <div className="td-rows">
         {LEADS.map((l, k) => {
           const p = prog(t, 200 + k * 450, 900);
@@ -203,15 +210,15 @@ export function DemoResults() {
 }
 
 export function DemoStats() {
-  const t = useClock(2600);
+  const t = useClock(3000);
   const stats = [
-    { label: "Rata-rata cocok", v: 81, unit: "%" },
-    { label: "CV siap", v: 6 },
-    { label: "Terkirim", v: 4 },
-    { label: "Interview", v: 2 },
+    { label: "Diukur", v: 9, unit: "" },
+    { label: "Dijahit", v: 6, unit: "" },
+    { label: "Dikirim", v: 4, unit: "" },
+    { label: "Interview", v: 2, unit: "" },
   ];
   return (
-    <Win title="Lamaran" h={126}>
+    <Win title="Lamaran" h={150}>
       <div className="td-stats">
         {stats.map((s, k) => (
           <div key={s.label} className="td-stat" style={{ opacity: prog(t, k * 180, 300) }}>
@@ -223,12 +230,8 @@ export function DemoStats() {
           </div>
         ))}
       </div>
-      <div className="td-pipe">
-        {["Draf", "CV siap", "Dikirim", "Interview"].map((s, k) => (
-          <span key={s} className={t > 1400 + k * 250 ? "on" : ""}>
-            {s}
-          </span>
-        ))}
+      <div className="td-track">
+        <SewTrack done={[0, 1, 2, 3].map((k) => t > 1300 + k * 350)} />
       </div>
     </Win>
   );
@@ -244,7 +247,11 @@ export function DemoConfirm() {
   const d = typeEnd(q2, c, 55) + 300;
   const t = useClock(d + 1800);
   return (
-    <Win title="DevOps Engineer · Konfirmasi" h={214}>
+    <Win title="DevOps Engineer · Lamaran" h={238}>
+      <div className="td-stage-row">
+        <SewTrack compact done={[true, t > c, t > d, false]} />
+        <span>{t > d ? "Jahit selesai, tinggal kirim" : t > c ? "Pas selesai, mulai menjahit" : "Tahap Pas: konfirmasi dulu"}</span>
+      </div>
       <div className="td-chat">
         <div className="td-q">
           <Typed text={q} t={t} start={a} cps={55} />
@@ -272,7 +279,7 @@ export function DemoConfirm() {
             </div>
           </div>
           <span className="td-ok">
-            <Check size={12} /> Siap
+            <Check size={12} /> Dijahit
           </span>
         </div>
       )}

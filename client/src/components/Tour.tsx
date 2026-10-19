@@ -32,15 +32,15 @@ const STEPS: Step[] = [
     target: '[data-tour="composer"]',
     title: "Tempel, lalu kirim",
     demo: DemoPaste,
-    body: "Teks menu dan iklan ikut tersalin tidak masalah. Isi Fokus pencarian sekali (misalnya DevOps, Jabodetabek), lalu tekan tombol panah.",
+    body: "Teks menu dan iklan ikut tersalin tidak masalah. Isi Fokus pencarian sekali (misalnya DevOps, Jabodetabek), lalu tekan tombol panah. Benang langsung mengukurnya.",
     place: "bottom",
   },
   {
     route: "/leads",
     target: '[data-tour="results"]',
-    title: "Lowongan sudah dinilai",
+    title: "Lowongan sudah diukur",
     demo: DemoResults,
-    body: "Tiap lowongan dapat skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Buka satu baris untuk membuat lamaran dan CV.",
+    body: "Tiap lowongan diukur: skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Buka satu baris untuk mulai menjahit CV-nya.",
     place: "top",
   },
   {
@@ -48,15 +48,15 @@ const STEPS: Step[] = [
     target: '[data-tour="stats"]',
     title: "Pantau semua lamaran",
     demo: DemoStats,
-    body: "Rata-rata kecocokan, CV yang siap, yang sudah dikirim, dan yang sampai interview. Lowongan dari luar LinkedIn bisa ditambah dengan tombol putih.",
+    body: "Angka besar adalah rata-rata kecocokan. Di bawahnya: berapa lowongan yang sudah diukur, dijahit jadi CV, dikirim, dan sampai interview. Lowongan dari luar LinkedIn bisa diukur lewat tombol putih.",
     place: "bottom",
   },
   {
     route: "/applications",
     target: '[data-tour="app-list"]',
-    title: "Di dalam satu lamaran",
+    title: "Benang di tiap lamaran",
     demo: DemoConfirm,
-    body: "Jawab pertanyaan konfirmasi supaya CV tetap jujur, lalu buat CV, unduh PDF, dan tulis email lamaran di tab Email.",
+    body: "Tiap lamaran punya benang Ukur, Pas, Jahit, Kirim. Di tahap Pas, jawab pertanyaan konfirmasi supaya CV tetap jujur. Setelah itu CV dijahit: unduh PDF, lalu tulis email di tab Email.",
     place: "top",
   },
   {
@@ -81,8 +81,8 @@ const STEPS: Step[] = [
     place: "bottom",
   },
   {
-    title: "Siap dipakai",
-    body: "Mulai dengan menempel satu halaman lowongan. Tur ini bisa dibuka lagi kapan saja dari tombol tanda tanya di sidebar.",
+    title: "Siap dijahit",
+    body: "Mulai dengan mengukur satu lowongan: tempel halamannya di Lowongan, Benang yang menjahit sisanya. Tur ini bisa dibuka lagi dari tombol tanda tanya di sidebar.",
   },
 ];
 

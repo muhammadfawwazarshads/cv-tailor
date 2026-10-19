@@ -44,7 +44,7 @@ export function SewTrack({ done, compact, onStep }: { done: boolean[]; compact?:
   );
 }
 
-function Needle() {
+export function Needle() {
   return (
     <svg className="sew-needle" viewBox="0 0 24 24" aria-hidden>
       <path d="M4 20 L17.5 6.5 L20 4 L18.5 7.5 L5 21 Q3.5 21.5 4 20 Z" fill="currentColor" />
