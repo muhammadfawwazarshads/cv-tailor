@@ -31,6 +31,8 @@ export class LlmError extends Error {
 }
 
 const trimSlash = (s: string) => s.replace(/\/+$/, "");
+// People often paste the full endpoint; keep only the base so "/chat/completions" is not doubled.
+const chatBase = (s: string) => trimSlash(s).replace(/\/chat\/completions$/, "");
 
 async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number) {
   let res: Response;
@@ -97,7 +99,7 @@ export async function callProvider(p: ProviderConfig, req: LlmRequest, timeoutMs
 
     case "openai": {
       const json = await postJson(
-        `${trimSlash(p.baseUrl || "https://api.openai.com/v1")}/chat/completions`,
+        `${chatBase(p.baseUrl || "https://api.openai.com/v1")}/chat/completions`,
         { authorization: `Bearer ${p.apiKey}` },
         {
           model: p.model,
@@ -143,7 +145,7 @@ export async function callProvider(p: ProviderConfig, req: LlmRequest, timeoutMs
       // OpenRouter, Ollama, LM Studio, Groq, Azure AI model inference, etc.
       if (!p.baseUrl) throw new LlmError("Base URL belum diisi");
       const json = await postJson(
-        `${trimSlash(p.baseUrl)}/chat/completions`,
+        `${chatBase(p.baseUrl)}/chat/completions`,
         p.apiKey ? { authorization: `Bearer ${p.apiKey}` } : {},
         {
           model: p.model,
