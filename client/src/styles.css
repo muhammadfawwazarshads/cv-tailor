@@ -420,3 +420,10 @@ tr:last-child td { border-bottom: none; }
   .lead-body { padding: 14px 16px 16px; }
   .facts-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- Drafts ---------- */
+.draft-meta { display: flex; flex-direction: column; gap: 10px; }
+.copy-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.copy-row .k { color: var(--muted); font-weight: 600; font-size: 13px; }
+.copy-row .v { font-weight: 600; overflow-wrap: anywhere; }
+.draft-body { white-space: pre-wrap; background: var(--surface-2); border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }

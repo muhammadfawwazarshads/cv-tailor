@@ -149,6 +149,26 @@ function leads(meta: { profile: Profile; sourceText: string }): LeadsResult {
   return { jobs };
 }
 
+function draft(kind: string, meta: { role: string; company: string; jobDescription: string; signature: string; instruction: string }) {
+  const to = meta.jobDescription.match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0] ?? "";
+  const role = meta.role || "the position";
+  const greet = `Dear ${meta.company ? `${meta.company} ` : ""}Hiring Team,`;
+  const extra = meta.instruction ? `\n\n${meta.instruction}` : "";
+  const variants =
+    kind === "cover_letter"
+      ? [{ label: "Cover letter", body: `${greet}\n\n(Mode demo) I would like to apply for ${role}.${extra}\n\nBest regards,\n${meta.signature}` }]
+      : kind === "follow_up"
+        ? [
+            { label: "Follow up lamaran", body: `${greet}\n\n(Mode demo) I am following up on my application for ${role}.\n\nBest regards,\n${meta.signature}` },
+            { label: "Terima kasih setelah interview", body: `${greet}\n\n(Mode demo) Thank you for the interview about [topik yang dibahas].\n\nBest regards,\n${meta.signature}` },
+          ]
+        : [
+            { label: "Ringkas", body: `${greet}\n\n(Mode demo) Please find my CV attached for ${role}.${extra}\n\nBest regards,\n${meta.signature}` },
+            { label: "Lebih menjual", body: `${greet}\n\n(Mode demo) I am applying for ${role}.\n- Relevant experience\n\nBest regards,\n${meta.signature}` },
+          ];
+  return { to, subject: `${kind === "follow_up" ? "Follow Up: " : kind === "cover_letter" ? "Cover Letter - " : "Application for "}${role}`, variants, notes: ["(Mode demo) Lampirkan CV dalam PDF."] };
+}
+
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9.]+/g, " ").trim();
 
 export function mockResponse(task: string, meta: any): unknown {
@@ -163,6 +183,10 @@ export function mockResponse(task: string, meta: any): unknown {
       return revise(meta);
     case "extract_leads":
       return leads(meta);
+    case "draft_email":
+    case "draft_cover_letter":
+    case "draft_follow_up":
+      return draft(task.slice(6), meta);
     default:
       return { ok: true };
   }

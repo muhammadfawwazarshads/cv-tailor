@@ -123,6 +123,7 @@ const migrations: string[] = [
      updated_at timestamptz NOT NULL DEFAULT now()
    );
    CREATE INDEX IF NOT EXISTS job_leads_user_idx ON job_leads(user_id, created_at DESC);`,
+  `ALTER TABLE applications ADD COLUMN IF NOT EXISTS drafts jsonb NOT NULL DEFAULT '[]'`,
 ];
 
 async function migrate() {

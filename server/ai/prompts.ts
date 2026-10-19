@@ -215,3 +215,44 @@ Return JSON with exactly this shape (one entry per distinct job; at most 25; ski
 }`,
   };
 }
+
+const DRAFT_BRIEF: Record<string, string> = {
+  email: `An email to send the application with the CV attached. Give exactly 2 variants:
+  1. label "Ringkas": 2 short paragraphs, polite and direct.
+  2. label "Lebih menjual": a short intro, 3-4 bullet points mapping the candidate's real experience to the job's main requirements, and a closing line.
+  Mention that the CV is attached. If the job ad says where or how to apply (email address, subject format, reference code), follow it exactly: put the address in "to" and use the required subject format. Otherwise subject = "Application for <Role> - <Candidate name>".`,
+  cover_letter: `A cover letter (one variant, label "Cover letter") of 3-4 paragraphs, under 350 words: why this role and company, the 2-3 most relevant experiences with concrete outcomes from the sources, how the candidate handles the main gap honestly (e.g. currently learning), and a closing. Address it to the hiring team unless a name is given. subject = "Cover Letter - <Role> - <Candidate name>".`,
+  follow_up: `Give exactly 2 variants:
+  1. label "Follow up lamaran": a short, polite check-in about one week after applying, restating interest in one line and one relevant strength.
+  2. label "Terima kasih setelah interview": a short thank-you after an interview, with one line connecting the candidate's experience to the role and a placeholder like [topik yang dibahas] the candidate fills in.
+  subject: reuse the application subject style, e.g. "Follow Up: Application for <Role> - <Candidate name>".`,
+};
+
+export function draftPrompt(ctx: Ctx & { kind: string; language: string; instruction: string; cvJson: string; signature: string }) {
+  return {
+    system: `You write job application emails and letters for a candidate, in their voice, that sound like a real person: specific, warm, and concise. No clichés such as "I am writing to express my keen interest", no exaggeration.
+
+${HONESTY_RULES.replace(/7\. ATS-friendly[^\n]*/, "7. Plain text only, no markdown symbols like ** or #. Bullets use \"- \".")}
+
+Write the email or letter in ${ctx.language}. Write "notes" in ${NOTES_LANGUAGE}. Reply with ONLY one JSON object.`,
+    user: `${context(ctx)}
+
+TAILORED CV FOR THIS JOB (JSON, prefer it over the master profile when choosing what to highlight):
+${ctx.cvJson || "(not created yet: use the master profile)"}
+
+SIGNATURE (end every variant with it, one item per line):
+${ctx.signature}
+
+WHAT TO WRITE:
+${DRAFT_BRIEF[ctx.kind]}
+
+${ctx.instruction ? `EXTRA INSTRUCTION FROM THE CANDIDATE (follow it if it does not break the rules):\n"""\n${ctx.instruction}\n"""\n` : ""}
+Return JSON with exactly this shape:
+{
+  "to": string /* email address from the job ad, or "" */,
+  "subject": string,
+  "variants": [ { "label": string, "body": string /* full text including greeting and signature, plain text with line breaks */ } ],
+  "notes": string[] /* 1-4 short tips: what to attach, what to fill in, how the ad wants applications sent */
+}`,
+  };
+}

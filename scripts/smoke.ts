@@ -123,6 +123,17 @@ const outDir = path.resolve(process.env.SMOKE_OUT_DIR || "scripts/tmp");
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "smoke.pdf"), pdf.buf);
 
+// Drafts: application email, cover letter, follow-up
+const d1 = await user("POST", `/api/applications/${app.id}/drafts`, { kind: "email", language: "English", instruction: "Mention I can relocate" });
+const email = d1.application?.drafts?.find((d: any) => d.kind === "email");
+check(d1.status === 200 && email?.variants.length === 2 && email.subject, "email draft with two variants");
+check(email?.variants[0].body.includes("Alex Pratama") && email.variants[0].body.includes("relocate"), "draft has signature and follows the instruction");
+const d2 = await user("POST", `/api/applications/${app.id}/drafts`, { kind: "cover_letter", language: "English" });
+check(d2.application.drafts.length === 2, "cover letter kept next to email draft");
+const d3 = await user("POST", `/api/applications/${app.id}/drafts`, { kind: "email", language: "Bahasa Indonesia" });
+check(d3.application.drafts.length === 2 && d3.application.drafts[0].language === "Bahasa Indonesia", "regenerating replaces the draft of the same kind");
+check((await user("POST", `/api/applications/${app.id}/drafts`, { kind: "poem" })).status === 400, "unknown draft kind rejected");
+
 const st = await user("PATCH", `/api/applications/${app.id}`, { status: "applied" });
 check(st.application.status === "applied", "update status");
 

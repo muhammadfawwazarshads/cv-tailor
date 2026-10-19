@@ -1,6 +1,6 @@
-import type { Analysis, Answer, CvDocument, Lead, Profile, TailorResult } from "../../server/shared/schemas";
+import type { Analysis, Answer, CvDocument, Draft, Lead, Profile, TailorResult } from "../../server/shared/schemas";
 
-export type { Analysis, Answer, CvDocument, Lead, Profile };
+export type { Analysis, Answer, CvDocument, Draft, Lead, Profile };
 
 export type LeadRow = {
   id: string;
@@ -39,6 +39,7 @@ export type Application = {
   analysis: Analysis | null;
   answers: Answer[];
   error: string | null;
+  drafts?: Draft[];
   created_at: string;
   updated_at: string;
 };

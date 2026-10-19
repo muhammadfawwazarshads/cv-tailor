@@ -4,13 +4,15 @@
  * and AI providers are called directly from the browser.
  */
 import type { z } from "zod";
-import { analyzePrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "../../../server/ai/prompts";
+import { analyzePrompt, draftPrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "../../../server/ai/prompts";
 import { LEAD_INCOMPLETE, leadJobText, leadKey } from "../../../server/shared/leads";
 import { callProvider, type LlmRequest, type ProviderConfig } from "../../../server/llm/providers";
 import {
   AnalysisSchema,
   ApplicationStatuses,
   CvDocumentSchema,
+  DraftKinds,
+  DraftResultSchema,
   emptyProfile,
   LeadSchema,
   LeadsResultSchema,
@@ -21,6 +23,7 @@ import {
   type Analysis,
   type Answer,
   type CvDocument,
+  type Draft,
   type Lead,
   type Profile,
   type TailorResult,
@@ -39,6 +42,7 @@ type AppRec = {
   analysis: Analysis | null;
   answers: Answer[];
   error: string | null;
+  drafts?: Draft[];
   created_at: string;
   updated_at: string;
 };
@@ -278,6 +282,7 @@ async function createApp(body: any) {
     analysis: null,
     answers: [],
     error: null,
+    drafts: [],
     created_at: now(),
     updated_at: now(),
   };
@@ -473,6 +478,27 @@ export async function localApi(method: string, rawUrl: string, body?: any): Prom
     return {
       version: addVersion(app.id, `Edit manual dari versi ${v.number}`, { cv, changes: ["Diedit manual."], notClaimed: v.notes.notClaimed ?? [], interviewPrep: v.notes.interviewPrep ?? [] }),
     };
+  }
+
+  if ((r = m(/^POST \/applications\/([^/]+)\/drafts$/))) {
+    const app = findApp(s, r[1]);
+    const kind = String(body?.kind ?? "");
+    if (!(DraftKinds as readonly string[]).includes(kind)) throw new LocalError(400, "Jenis draft tidak dikenal.");
+    const language = String(body?.language ?? "English");
+    const instruction = String(body?.instruction ?? "").trim().slice(0, 2000);
+    const ctx = jobCtx(s, app);
+    const latest = s.versions.filter((v) => v.application_id === app.id).sort((a, b) => b.number - a.number)[0];
+    const c = ctx.profile.contact;
+    const signature = [ctx.profile.name, c.phone, c.email, c.linkedin || c.website].filter(Boolean).join("\n");
+    const p = draftPrompt({ ...ctx, profileJson: compact(ctx.profile), cvJson: latest ? JSON.stringify(latest.data) : "", signature, kind, language, instruction });
+    const res = await callJson({ task: `draft_${kind}`, ...p, maxTokens: 6_000, meta: { ...ctx, signature, instruction } }, DraftResultSchema);
+    const s2 = load();
+    const a = findApp(s2, app.id);
+    const draft: Draft = { ...res.data, kind: kind as Draft["kind"], language, instruction, created_at: now() };
+    a.drafts = [draft, ...(a.drafts ?? []).filter((d) => d.kind !== kind)];
+    a.updated_at = now();
+    save(s2);
+    return { application: a, provider: res.provider };
   }
 
   /* job leads */

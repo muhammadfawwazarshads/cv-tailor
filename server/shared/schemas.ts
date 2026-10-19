@@ -179,3 +179,20 @@ export type Lead = z.infer<typeof LeadSchema>;
 
 export const LeadsResultSchema = z.object({ jobs: z.array(LeadSchema).max(40).default([]) });
 export type LeadsResult = z.infer<typeof LeadsResultSchema>;
+
+/* ---------- Drafts: application email, cover letter, follow-up ---------- */
+
+export const DraftKinds = ["email", "cover_letter", "follow_up"] as const;
+export type DraftKind = (typeof DraftKinds)[number];
+
+export const DraftResultSchema = z.object({
+  to: z.string().max(300).catch("").default(""),
+  subject: z.string().max(300).catch("").default(""),
+  variants: z
+    .array(z.object({ label: z.string().max(80), body: z.string().min(20).max(12_000) }))
+    .min(1)
+    .max(3),
+  notes: z.array(z.string().max(500)).catch([]).default([]),
+});
+export type DraftResult = z.infer<typeof DraftResultSchema>;
+export type Draft = DraftResult & { kind: DraftKind; language: string; instruction: string; created_at: string };

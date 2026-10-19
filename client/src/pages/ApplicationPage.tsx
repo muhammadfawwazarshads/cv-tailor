@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, formatDate, STANDALONE, STATUS_LABELS, type Application, type CvDocument, type Version } from "../api";
 import { CvPreview } from "../components/CvPreview";
+import { DraftsTab } from "./DraftsTab";
 import { Busy, ErrorBox, Loading, useAction } from "../components/ui";
 
-type Tab = "analysis" | "cv" | "jd";
+type Tab = "analysis" | "cv" | "email" | "jd";
 
 const QUICK_REPLIES = ["Belum pernah", "Baru belajar, belum di project", "Pernah di project pribadi", "Pernah di kerjaan, saya yang setup"];
 
@@ -89,6 +90,9 @@ export function ApplicationPage() {
         <button role="tab" aria-selected={tab === "cv"} className={tab === "cv" ? "active" : ""} onClick={() => setTab("cv")}>
           CV {versions.length > 0 && <span className="n">{versions.length}</span>}
         </button>
+        <button role="tab" aria-selected={tab === "email"} className={tab === "email" ? "active" : ""} onClick={() => setTab("email")}>
+          Email {(app.drafts?.length ?? 0) > 0 && <span className="n">{app.drafts!.length}</span>}
+        </button>
         <button role="tab" aria-selected={tab === "jd"} className={tab === "jd" ? "active" : ""} onClick={() => setTab("jd")}>
           Lowongan
         </button>
@@ -114,6 +118,7 @@ export function ApplicationPage() {
           onGoAnalysis={() => setTab("analysis")}
         />
       )}
+      {tab === "email" && <DraftsTab app={app} hasCv={versions.length > 0} onApp={setApp} />}
       {tab === "jd" && (
         <div className="card">
           <div style={{ whiteSpace: "pre-wrap", maxWidth: "80ch" }}>{app.job_description}</div>

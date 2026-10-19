@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { analyzeJob, reviseCv, tailorCv } from "../ai/service.js";
+import { analyzeJob, draftMessage, reviseCv, tailorCv } from "../ai/service.js";
 import { requireAuth, type SessionUser } from "../auth.js";
 import { one, query } from "../db/index.js";
 import { HttpError, uuid, wrap } from "../http.js";
@@ -9,9 +9,11 @@ import {
   AnalysisSchema,
   ApplicationStatuses,
   CvDocumentSchema,
+  DraftKinds,
   type Analysis,
   type Answer,
   type CvDocument,
+  type Draft,
   type TailorResult,
 } from "../shared/schemas.js";
 import { getFacts, getProfile } from "./profile.js";
@@ -27,6 +29,7 @@ type AppRow = {
   analysis: Analysis | null;
   answers: Answer[];
   error: string | null;
+  drafts: Draft[];
   created_at: string;
   updated_at: string;
 };
@@ -262,6 +265,26 @@ applicationsRouter.put(
       interviewPrep: v.notes.interviewPrep ?? [],
     });
     return { version };
+  }),
+);
+
+applicationsRouter.post(
+  "/:id/drafts",
+  wrap(async (req) => {
+    const app = await loadApp(req.user!, req.params.id);
+    const body = z
+      .object({
+        kind: z.enum(DraftKinds),
+        language: z.string().trim().min(2).max(40).default("English"),
+        instruction: z.string().trim().max(2000).default(""),
+      })
+      .parse(req.body);
+    const latest = await one<{ data: CvDocument }>(`SELECT data FROM cv_versions WHERE application_id = $1 ORDER BY number DESC LIMIT 1`, [app.id]);
+    const res = await draftMessage(req.user!, { ...(await jobContext(req.user!, app)), ...body, cv: latest?.data ?? null });
+    const draft: Draft = { ...res.data, ...body, created_at: new Date().toISOString() };
+    const drafts = [draft, ...(app.drafts ?? []).filter((d) => d.kind !== body.kind)];
+    const updated = await one<AppRow>(`UPDATE applications SET drafts = $1, updated_at = now() WHERE id = $2 RETURNING *`, [JSON.stringify(drafts), app.id]);
+    return { application: updated, provider: res.provider };
   }),
 );
 

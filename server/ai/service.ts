@@ -2,6 +2,7 @@ import type { SessionUser } from "../auth.js";
 import { callJson } from "../llm/router.js";
 import {
   AnalysisSchema,
+  DraftResultSchema,
   LeadsResultSchema,
   ProfileSchema,
   TailorResultSchema,
@@ -11,7 +12,7 @@ import {
   type Profile,
   type TailorResult,
 } from "../shared/schemas.js";
-import { analyzePrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "./prompts.js";
+import { analyzePrompt, draftPrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "./prompts.js";
 
 const MAX_SOURCE = 60_000;
 
@@ -71,4 +72,22 @@ export async function extractLeads(user: SessionUser, ctx: { profile: Profile; f
   const sourceText = ctx.sourceText.slice(0, MAX_LEADS_SOURCE);
   const p = leadsPrompt({ ...ctx, sourceText, profileJson: compact(ctx.profile) });
   return callJson(user, { task: "extract_leads", ...p, maxTokens: 16_000, meta: { ...ctx, sourceText } }, LeadsResultSchema);
+}
+
+export function signatureOf(profile: Profile) {
+  const c = profile.contact;
+  return [profile.name, c.phone, c.email, c.linkedin || c.website].filter(Boolean).join("\n");
+}
+
+export async function draftMessage(
+  user: SessionUser,
+  ctx: JobCtx & { kind: string; language: string; instruction: string; cv: CvDocument | null },
+) {
+  const p = draftPrompt({
+    ...ctx,
+    profileJson: compact(ctx.profile),
+    cvJson: ctx.cv ? JSON.stringify(ctx.cv) : "",
+    signature: signatureOf(ctx.profile),
+  });
+  return callJson(user, { task: `draft_${ctx.kind}`, ...p, maxTokens: 6_000, meta: { ...ctx, signature: signatureOf(ctx.profile) } }, DraftResultSchema);
 }

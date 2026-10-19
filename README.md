@@ -24,6 +24,16 @@ Menu **Lowongan** menampung lowongan sebelum kamu memutuskan melamar. LinkedIn t
 
 Kolom **Fokus pencarian** (misalnya "Software engineer, DevOps, data. Jabodetabek. Fresh grad") dipakai setiap kali menilai.
 
+### Email lamaran, cover letter, dan follow-up
+
+Tab **Email** di setiap lamaran menulis draft dari lowongan dan CV yang sudah disesuaikan:
+
+- **Email lamaran** dalam dua versi (ringkas dan lebih menjual). Kalau lowongan menyebut alamat email atau format subject (misalnya "IT Staff_Cikarang"), draft mengikutinya.
+- **Cover letter** 3-4 paragraf.
+- **Follow-up** seminggu setelah melamar dan ucapan terima kasih setelah interview.
+
+Pilih bahasa, tambahkan instruksi ("sebut saya siap relokasi"), lalu salin atau buka langsung di aplikasi email. Aturan kejujuran yang sama berlaku: draft hanya memakai pengalaman yang ada di profil dan fakta terkonfirmasi.
+
 Fitur lain:
 
 - **Multi-user** dengan login. Akun pertama otomatis jadi admin. Data CV dan lamaran tiap pengguna privat.
