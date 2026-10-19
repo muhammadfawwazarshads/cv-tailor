@@ -992,8 +992,9 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 /* ---------- Welcome after sign-in: Benang measures, sews and tags the user's own CV ---------- */
 .welcome { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 24px; background: rgba(10, 13, 22, .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); transition: opacity .6s ease; }
 .welcome.phase-leave { opacity: 0; pointer-events: none; }
-.welcome-scene { display: flex; align-items: center; gap: 28px; animation: signin-in .8s cubic-bezier(.22, 1, .36, 1) both; }
-.wl-side { animation: signin-in .8s .35s cubic-bezier(.22, 1, .36, 1) both; }
+.welcome-scene { display: flex; align-items: center; gap: 28px; animation: signin-in 1s cubic-bezier(.22, 1, .36, 1) both; }
+.wl-skip { position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--muted); opacity: .7; animation: signin-in .6s 1.5s both; }
+.wl-side { animation: signin-in 1s .5s cubic-bezier(.22, 1, .36, 1) both; }
 .wl-typing { display: inline-flex; gap: 4px; padding: 6px 0; }
 .wl-typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-2); animation: chat-dot 1s ease-in-out infinite; }
 .wl-typing i:nth-child(2) { animation-delay: .15s; }
@@ -1003,7 +1004,8 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 .phase-leave .wl-sheet { transform: scale(1.6); }
 @keyframes welcome-snug { 40% { transform: scale(1.03) rotate(-1deg); } }
 /* beat 1: a tailor's tape slides across the top */
-.wl-tape { position: absolute; left: 0; top: 0; height: 12px; width: 0; background: #e9e0cd repeating-linear-gradient(90deg, #6f6350 0 1px, transparent 1px 7px) top / 100% 5px no-repeat; opacity: .85; animation: wl-measure 1.6s .7s cubic-bezier(.65, 0, .35, 1) forwards; }
+.wl-tape { position: absolute; left: 0; top: 0; height: 12px; width: 0; background: #e9e0cd repeating-linear-gradient(90deg, #6f6350 0 1px, transparent 1px 7px) top / 100% 5px no-repeat; opacity: .85; }
+.phase-measure .wl-tape { animation: wl-measure 2.2s .5s cubic-bezier(.65, 0, .35, 1) forwards; }
 .phase-sew .wl-tape, .phase-pas .wl-tape, .phase-next .wl-tape, .phase-leave .wl-tape { opacity: 0; transition: opacity .5s; }
 @keyframes wl-measure { to { width: 100%; } }
 .wl-head { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; }
