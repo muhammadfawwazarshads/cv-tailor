@@ -15,7 +15,9 @@ export default defineConfig(({ mode }) => {
       : { outDir: "../dist-client", emptyOutDir: true },
     server: {
       port: 5173,
-      proxy: { "/api": "http://localhost:3000" },
+      // Keep the browser's Host header (the string shorthand sets changeOrigin: true), so the
+      // server's same-origin CSRF check sees localhost:5173 on both Origin and Host.
+      proxy: { "/api": { target: "http://localhost:3000", changeOrigin: false } },
     },
   };
 });
