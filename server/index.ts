@@ -8,7 +8,9 @@ import { initDb } from "./db/index.js";
 import { errorHandler } from "./http.js";
 import { adminRouter } from "./routes/admin.js";
 import { applicationsRouter } from "./routes/applications.js";
+import { formsRouter } from "./routes/forms.js";
 import { leadsRouter } from "./routes/leads.js";
+import { personalRouter } from "./routes/personal.js";
 import { factsRouter, profileRouter } from "./routes/profile.js";
 
 await initDb();
@@ -16,7 +18,7 @@ await initDb();
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use((_req, res, next) => {
   res.setHeader("x-content-type-options", "nosniff");
@@ -44,6 +46,8 @@ app.use("/api/profile", profileRouter);
 app.use("/api/facts", factsRouter);
 app.use("/api/applications", applicationsRouter);
 app.use("/api/leads", leadsRouter);
+app.use("/api/personal", personalRouter);
+app.use("/api/forms", formsRouter);
 app.use("/api/admin/users", usersRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api", (_req, res) => res.status(404).json({ error: "Endpoint tidak ditemukan." }));

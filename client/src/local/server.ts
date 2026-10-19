@@ -4,8 +4,9 @@
  * and AI providers are called directly from the browser.
  */
 import type { z } from "zod";
-import { analyzePrompt, draftPrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "../../../server/ai/prompts";
+import { analyzePrompt, draftPrompt, extractProfilePrompt, formPrompt, leadsPrompt, revisePrompt, tailorPrompt } from "../../../server/ai/prompts";
 import { LEAD_INCOMPLETE, leadJobText, leadKey } from "../../../server/shared/leads";
+import { dataUrlToBytes, fillForm, parseForm } from "../../../server/shared/docxform";
 import { callProvider, type LlmRequest, type ProviderConfig } from "../../../server/llm/providers";
 import {
   AnalysisSchema,
@@ -14,9 +15,12 @@ import {
   DraftKinds,
   DraftResultSchema,
   emptyProfile,
+  FormPlanSchema,
+  ImageDataUrl,
   LeadSchema,
   LeadsResultSchema,
   LeadStatuses,
+  PersonalSchema,
   ProfileSchema,
   ProviderTypes,
   TailorResultSchema,
@@ -72,6 +76,7 @@ type Store = {
   providers: ProviderRec[];
   usage: UsageRec[];
   leads: LeadRec[];
+  personal?: { items: { label: string; value: string }[]; signature: string | null; photo: string | null; updatedAt: string | null };
 };
 
 export class LocalError extends Error {
@@ -499,6 +504,58 @@ export async function localApi(method: string, rawUrl: string, body?: any): Prom
     a.updated_at = now();
     save(s2);
     return { application: a, provider: res.provider };
+  }
+
+  /* personal data and company forms */
+  if (route === "GET /personal") {
+    const p = s.personal;
+    return { personal: PersonalSchema.parse({ items: p?.items ?? [] }), signature: p?.signature ?? null, photo: p?.photo ?? null, updatedAt: p?.updatedAt ?? null };
+  }
+  if (route === "PUT /personal") {
+    const cur = s.personal ?? { items: [], signature: null, photo: null, updatedAt: null };
+    const img = (v: unknown) => (v === null ? null : ImageDataUrl.parse(v));
+    s.personal = {
+      items: body?.personal ? PersonalSchema.parse(body.personal).items : cur.items,
+      signature: body && "signature" in body ? img(body.signature) : cur.signature,
+      photo: body && "photo" in body ? img(body.photo) : cur.photo,
+      updatedAt: now(),
+    };
+    save(s);
+    return localApi("GET", "/api/personal");
+  }
+  if (route === "POST /forms/analyze" || route === "POST /forms/fill") {
+    const file = body instanceof FormData ? body.get("file") : null;
+    if (!(file instanceof File)) throw new LocalError(400, "Pilih file form (.docx).");
+    if (!/\.docx$/i.test(file.name)) throw new LocalError(400, "Saat ini hanya form Word .docx yang bisa diisi. Simpan ulang .doc atau PDF sebagai .docx dulu.");
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const personal = s.personal ?? { items: [], signature: null, photo: null, updatedAt: null };
+    if (route === "POST /forms/fill") {
+      const fill = JSON.parse(String(body.get("fill") ?? "{}"));
+      const out = await fillForm(buf, { values: fill.values ?? {}, checks: fill.checks ?? [], replacements: fill.replacements ?? [] }, { signature: dataUrlToBytes(personal.signature), photo: dataUrlToBytes(personal.photo) });
+      let bin = "";
+      for (let i = 0; i < out.file.length; i += 0x8000) bin += String.fromCharCode(...out.file.subarray(i, i + 0x8000));
+      return { file: btoa(bin), filename: file.name.replace(/\.docx$/i, "") + " - terisi.docx", filled: out.filled };
+    }
+    let form;
+    try {
+      form = await parseForm(buf);
+    } catch (e: any) {
+      throw new LocalError(400, e?.message ?? "Form tidak terbaca.");
+    }
+    if (!form.slots.length) throw new LocalError(400, "Tidak ada isian yang terdeteksi di form ini.");
+    const profile = s.profile ? ProfileSchema.parse(s.profile) : emptyProfile();
+    const ctx = {
+      outline: form.outline.slice(0, 60_000),
+      slotsText: form.slots.map((x) => `${x.id} ${x.kind} ${x.label}${x.options ? ` [${x.options.join(" / ")}]` : ""}`).join("\n"),
+      profileJson: compact(profile),
+      facts: s.facts.map((f) => f.text),
+      saved: personal.items.filter((i) => i.label && i.value).map((i) => `- ${i.label}: ${i.value}`).join("\n"),
+      today: new Date().toISOString().slice(0, 10),
+      hasSignature: Boolean(personal.signature),
+      hasPhoto: Boolean(personal.photo),
+    };
+    const res = await callJson({ task: "fill_form", ...formPrompt(ctx), maxTokens: 16_000, meta: { form, saved: personal.items, hasSignature: ctx.hasSignature } }, FormPlanSchema);
+    return { slots: form.slots, plan: res.data, provider: res.provider };
   }
 
   /* job leads */

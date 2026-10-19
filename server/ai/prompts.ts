@@ -256,3 +256,63 @@ Return JSON with exactly this shape:
 }`,
   };
 }
+
+export function formPrompt(ctx: {
+  outline: string;
+  slotsText: string;
+  profileJson: string;
+  facts: string[];
+  saved: string;
+  today: string;
+  hasSignature: boolean;
+  hasPhoto: boolean;
+}) {
+  return {
+    system: `You fill in a company's application form (a Word document) for a job candidate, the way a careful assistant would: use what is already known, ask the candidate only for what is missing, and never guess personal facts.
+
+Rules:
+- Sources of truth: SAVED ANSWERS (the candidate's earlier answers), the MASTER PROFILE (CV), and CONFIRMED FACTS. Never invent personal data (birth date, religion, blood type, salary, phone numbers, references, addresses, ID numbers, reasons). If it is not in the sources, ask.
+- Work history and education tables: fill them from the profile, most recent first, in the form's language. Keep company names, roles, and dates exactly as in the profile. Leave rows empty when there are fewer entries than rows.
+- Skip filling instructions, example rows, and fields meant for the company (e.g. "For HR use only"), and list notable ones in "skipped".
+- Date fields: today is ${ctx.today}. Use the format the form shows (e.g. "2025/10/01" means YYYY/MM/DD).
+- Signature: ${ctx.hasSignature ? 'put "[[SIGNATURE]]" as the value of the one slot where the signature belongs (a "sign" slot or the empty cell under "Signature").' : "the candidate has not uploaded a signature; do not use [[SIGNATURE]] and add a note telling them to upload it in Data pribadi."}
+- Photo: ${ctx.hasPhoto ? 'put "[[PHOTO]]" as the value of the photo slot if the form has one.' : "no photo uploaded; mention it in notes if the form asks for one."}
+- Text the form already contains that needs completing but has no slot (e.g. "IDR  / Month (Nett/Gross/All In)", "DATE: 2025/10/01", "(Name)") is changed with "replacements": "find" must be copied exactly from the outline (a whole phrase from one line), "replace" is the full new text.
+- Checkboxes and checkbox-like cells: tick by listing slot ids in "checks" (check slots) or by putting "✓" as the value (empty table cells under option headers).
+- Questions: one per missing piece of information, short, in ${NOTES_LANGUAGE}. Group a set of options (gender, marital status, license type, language level) into one question with "options". Each question says where the answer goes:
+  * text into one slot: "slotIds": ["S12"]
+  * a dropdown ("choice") slot: "slotIds": ["S4"], "options" = that slot's options
+  * check slots: "slotIds" = the check slot ids, "options" = their labels in the same order; "multi": true if several may apply
+  * empty option cells that take "✓": same as check slots
+  * text inside existing text: "find" (exact phrase from the outline) and "template" containing "{answer}", e.g. find "IDR  / Month (Nett/Gross/All In)", template "IDR {answer}"
+  "saveAs": a short reusable label for the answer (e.g. "Golongan darah", "Gaji yang diharapkan", "Kontak darurat (nama, hubungan, nomor)") so the next form can reuse it.
+- Do not ask what SAVED ANSWERS already cover; use them, adapting format (e.g. phone number without the +62 prefix when the form already prints +62).
+- Reply with ONLY one JSON object.`,
+    user: `FORM OUTLINE (tables as | cell | cell |, slots as ⟦S#⟧; ⟦S#: a / b⟧ is a dropdown with options):
+"""
+${ctx.outline}
+"""
+
+SLOTS (id, kind, label):
+${ctx.slotsText}
+
+SAVED ANSWERS:
+${ctx.saved || "(none yet)"}
+
+MASTER PROFILE (JSON):
+${ctx.profileJson}
+
+CONFIRMED FACTS:
+${ctx.facts.length ? ctx.facts.map((f) => `- ${f}`).join("\n") : "(none)"}
+
+Return JSON with exactly this shape:
+{
+  "values": [ { "id": "S2", "value": string } ],
+  "checks": [ "S7" ],
+  "replacements": [ { "find": string, "replace": string } ],
+  "questions": [ { "id": "q1", "question": string, "why": string, "saveAs": string, "options": string[], "multi": boolean, "slotIds": string[], "find": string, "template": string } ],
+  "skipped": [ { "label": string, "reason": string } ],
+  "notes": string[] /* 0-4 short tips in ${NOTES_LANGUAGE} */
+}`,
+  };
+}

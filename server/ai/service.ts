@@ -3,6 +3,7 @@ import { callJson } from "../llm/router.js";
 import {
   AnalysisSchema,
   DraftResultSchema,
+  FormPlanSchema,
   LeadsResultSchema,
   ProfileSchema,
   TailorResultSchema,
@@ -12,7 +13,8 @@ import {
   type Profile,
   type TailorResult,
 } from "../shared/schemas.js";
-import { analyzePrompt, draftPrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "./prompts.js";
+import { analyzePrompt, draftPrompt, extractProfilePrompt, formPrompt, leadsPrompt, revisePrompt, tailorPrompt } from "./prompts.js";
+import type { ParsedForm } from "../shared/docxform.js";
 
 const MAX_SOURCE = 60_000;
 
@@ -90,4 +92,21 @@ export async function draftMessage(
     signature: signatureOf(ctx.profile),
   });
   return callJson(user, { task: `draft_${ctx.kind}`, ...p, maxTokens: 6_000, meta: { ...ctx, signature: signatureOf(ctx.profile) } }, DraftResultSchema);
+}
+
+export function formContext(form: ParsedForm, profile: Profile, facts: string[], saved: { label: string; value: string }[], images: { hasSignature: boolean; hasPhoto: boolean }) {
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    outline: form.outline.slice(0, 60_000),
+    slotsText: form.slots.map((s) => `${s.id} ${s.kind} ${s.label}${s.options ? ` [${s.options.join(" / ")}]` : ""}`).join("\n"),
+    profileJson: compact(profile),
+    facts,
+    saved: saved.filter((i) => i.label && i.value).map((i) => `- ${i.label}: ${i.value}`).join("\n"),
+    today,
+    ...images,
+  };
+}
+
+export async function planForm(user: SessionUser, ctx: ReturnType<typeof formContext>, meta: unknown) {
+  return callJson(user, { task: "fill_form", ...formPrompt(ctx), maxTokens: 16_000, meta }, FormPlanSchema);
 }

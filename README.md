@@ -34,6 +34,17 @@ Tab **Email** di setiap lamaran menulis draft dari lowongan dan CV yang sudah di
 
 Pilih bahasa, tambahkan instruksi ("sebut saya siap relokasi"), lalu salin atau buka langsung di aplikasi email. Aturan kejujuran yang sama berlaku: draft hanya memakai pengalaman yang ada di profil dan fakta terkonfirmasi.
 
+### Isi form data diri perusahaan
+
+Banyak perusahaan dan agensi meminta form data diri dalam Word. Di menu **Isi form**:
+
+1. Unggah form .docx. Aplikasi membaca tabel, titik-titik/garis bawah, kolom setelah titik dua, kotak centang, dan dropdown Word.
+2. AI mengisi yang sudah diketahui (profil CV, riwayat kerja dan pendidikan, jawaban tersimpan, tanggal hari ini) dan **menanyakan sisanya**, misalnya golongan darah, kontak darurat, atau gaji yang diharapkan. Pilihan seperti jenis kelamin atau status ditampilkan sebagai tombol.
+3. Jawaban disimpan di **Data pribadi**, jadi form berikutnya tidak menanyakannya lagi.
+4. Unduh .docx yang sudah terisi, lengkap dengan **tanda tangan** (digambar langsung atau foto tanda tangan di kertas, latar putih dihapus otomatis) dan pas foto bila ada kotaknya.
+
+Data pribadi dan tanda tangan hanya bisa dibaca oleh akunmu sendiri; di versi satu file, semuanya tersimpan di browser saja. Tetap buka hasilnya di Word sebelum dikirim: kotak centang berupa gambar dan tata letak yang rumit belum tentu terbaca.
+
 Fitur lain:
 
 - **Multi-user** dengan login. Akun pertama otomatis jadi admin. Data CV dan lamaran tiap pengguna privat.
@@ -177,7 +188,7 @@ Workflow GitHub Actions (`.github/workflows/ci.yml`) berjalan di setiap push dan
 
 ```
 client/                 Frontend (Vite + React)
-  src/pages/            Lowongan, lamaran, detail lamaran, profil, admin
+  src/pages/            Lowongan, lamaran, detail lamaran, isi form, profil, data pribadi, admin
   src/components/       Pratinjau CV, komponen UI
 server/
   index.ts              Express app
@@ -188,6 +199,7 @@ server/
   pdf/                  Renderer PDF ATS-friendly
   routes/               Profil, fakta, lowongan, lamaran, admin
   shared/schemas.ts     Skema Zod yang dipakai server dan client
+  shared/docxform.ts    Membaca dan mengisi form .docx (dipakai server dan versi satu file)
 scripts/smoke.ts        Tes end-to-end
 ```
 

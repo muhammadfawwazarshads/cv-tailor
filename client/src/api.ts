@@ -1,6 +1,9 @@
-import type { Analysis, Answer, CvDocument, Draft, Lead, Profile, TailorResult } from "../../server/shared/schemas";
+import type { FormSlot } from "../../server/shared/docxform";
+import type { Analysis, Answer, CvDocument, Draft, FormPlan, FormQuestion, Lead, Personal, Profile, TailorResult } from "../../server/shared/schemas";
 
-export type { Analysis, Answer, CvDocument, Draft, Lead, Profile };
+export type { Analysis, Answer, CvDocument, Draft, FormPlan, FormQuestion, FormSlot, Lead, Personal, Profile };
+
+export type PersonalData = { personal: Personal; signature: string | null; photo: string | null; updatedAt: string | null };
 
 export type LeadRow = {
   id: string;
@@ -128,4 +131,19 @@ export const STATUS_TONE: Record<string, string> = {
 
 export function formatDate(s: string) {
   return new Date(s).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+/** Saves a base64 file (from the API) with the browser's download dialog. */
+export function downloadBase64(base64: string, filename: string, type: string) {
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }

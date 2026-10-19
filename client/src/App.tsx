@@ -1,4 +1,4 @@
-import { Activity, Briefcase, Cpu, LogOut, Menu, Radar, Scissors, UserRound, Users } from "lucide-react";
+import { Activity, Briefcase, Cpu, FileSignature, IdCard, LogOut, Menu, Radar, Scissors, UserRound, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
@@ -9,7 +9,9 @@ import { UsersPage } from "./pages/admin/UsersPage";
 import { ApplicationPage } from "./pages/ApplicationPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { AuthPage } from "./pages/AuthPage";
+import { FormsPage } from "./pages/FormsPage";
 import { LeadsPage } from "./pages/LeadsPage";
+import { PersonalPage } from "./pages/PersonalPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
 type AuthCtx = { user: User | null; setUser: (u: User | null) => void };
@@ -77,8 +79,14 @@ function Shell() {
           <NavLink to="/applications">
             <Briefcase size={18} /> Lamaran
           </NavLink>
+          <NavLink to="/forms">
+            <FileSignature size={18} /> Isi form
+          </NavLink>
           <NavLink to="/profile">
             <UserRound size={18} /> Profil CV
+          </NavLink>
+          <NavLink to="/personal">
+            <IdCard size={18} /> Data pribadi
           </NavLink>
           {isAdmin && (
             <>
@@ -124,6 +132,8 @@ function Shell() {
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/applications/:id" element={<ApplicationPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/forms" element={<FormsPage />} />
+            <Route path="/personal" element={<PersonalPage />} />
             {isAdmin && (
               <>
                 <Route path="/admin/providers" element={<ProvidersPage />} />

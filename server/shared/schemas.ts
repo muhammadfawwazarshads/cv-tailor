@@ -196,3 +196,48 @@ export const DraftResultSchema = z.object({
 });
 export type DraftResult = z.infer<typeof DraftResultSchema>;
 export type Draft = DraftResult & { kind: DraftKind; language: string; instruction: string; created_at: string };
+
+/* ---------- Personal data for company forms (filled once, reused) ---------- */
+
+const pv = (max = 500) => z.string().max(max).catch("").default("");
+
+/**
+ * Remembered answers from company forms ("Golongan darah" -> "B"), so the next form does not ask again.
+ * Free-form on purpose: every company's form asks different things.
+ */
+export const PersonalSchema = z.object({
+  items: z.array(z.object({ label: pv(200), value: pv(2000) })).max(200).catch([]).default([]),
+});
+export type Personal = z.infer<typeof PersonalSchema>;
+export const emptyPersonal = (): Personal => PersonalSchema.parse({});
+
+/** Images are stored as data URLs; keep them small. */
+export const ImageDataUrl = z
+  .string()
+  .max(1_500_000, "Gambar terlalu besar (maks sekitar 1 MB).")
+  .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/, "Format gambar harus PNG atau JPG.");
+
+/* ---------- Company form filling ---------- */
+
+export const FormQuestionSchema = z.object({
+  id: z.string().max(20),
+  question: z.string().max(500),
+  why: z.string().max(300).catch("").default(""),
+  saveAs: z.string().max(200).catch("").default(""),
+  options: z.array(z.string().max(200)).max(20).catch([]).default([]),
+  multi: z.boolean().catch(false).default(false),
+  slotIds: z.array(z.string().max(20)).max(20).catch([]).default([]),
+  find: z.string().max(500).catch("").default(""),
+  template: z.string().max(1000).catch("").default(""),
+});
+export type FormQuestion = z.infer<typeof FormQuestionSchema>;
+
+export const FormPlanSchema = z.object({
+  values: z.array(z.object({ id: z.string().max(20), value: z.string().max(4000) })).max(500).catch([]).default([]),
+  checks: z.array(z.string().max(20)).max(300).catch([]).default([]),
+  replacements: z.array(z.object({ find: z.string().max(500), replace: z.string().max(1000) })).max(60).catch([]).default([]),
+  questions: z.array(FormQuestionSchema).max(40).catch([]).default([]),
+  skipped: z.array(z.object({ label: z.string().max(300), reason: z.string().max(300).catch("").default("") })).max(100).catch([]).default([]),
+  notes: z.array(z.string().max(500)).max(10).catch([]).default([]),
+});
+export type FormPlan = z.infer<typeof FormPlanSchema>;

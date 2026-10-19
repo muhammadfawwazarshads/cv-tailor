@@ -149,6 +149,24 @@ function leads(meta: { profile: Profile; sourceText: string }): LeadsResult {
   return { jobs };
 }
 
+function fillForm(meta: { form: { slots: { id: string; kind: string; label: string; options?: string[] }[] }; saved: { label: string; value: string }[]; hasSignature: boolean }) {
+  const values: { id: string; value: string }[] = [];
+  const questions: any[] = [];
+  let signed = false;
+  for (const slot of meta.form.slots) {
+    const label = slot.label.toLowerCase();
+    const saved = meta.saved.find((i) => i.label && label.startsWith(i.label.toLowerCase()));
+    if (slot.kind === "sign" && meta.hasSignature && !signed) {
+      values.push({ id: slot.id, value: "[[SIGNATURE]]" });
+      signed = true;
+    } else if (saved) values.push({ id: slot.id, value: saved.value });
+    else if (questions.length < 4 && (slot.kind === "cell" || slot.kind === "choice") && !label.includes("lanjutan")) {
+      questions.push({ id: `q${questions.length + 1}`, question: `(Mode demo) ${slot.label}?`, why: "", saveAs: slot.label, options: slot.options ?? [], multi: false, slotIds: [slot.id], find: "", template: "" });
+    }
+  }
+  return { values, checks: [], replacements: [], questions, skipped: [], notes: meta.hasSignature ? [] : ["(Mode demo) Upload tanda tangan di Data pribadi."] };
+}
+
 function draft(kind: string, meta: { role: string; company: string; jobDescription: string; signature: string; instruction: string }) {
   const to = meta.jobDescription.match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0] ?? "";
   const role = meta.role || "the position";
@@ -183,6 +201,8 @@ export function mockResponse(task: string, meta: any): unknown {
       return revise(meta);
     case "extract_leads":
       return leads(meta);
+    case "fill_form":
+      return fillForm(meta);
     case "draft_email":
     case "draft_cover_letter":
     case "draft_follow_up":

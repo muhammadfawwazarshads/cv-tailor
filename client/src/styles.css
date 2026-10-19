@@ -280,7 +280,7 @@ tr:last-child td { border-bottom: none; }
 .quick button { font: inherit; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); border-radius: var(--r-pill); padding: 4px 11px; cursor: pointer; }
 .quick button:hover { border-color: var(--cobalt); color: var(--cobalt); }
 .answer .check { align-self: flex-end; font-size: 12.5px; }
-.sticky-actions { position: sticky; bottom: 16px; z-index: 5; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 8px; display: flex; gap: 8px; flex-wrap: wrap; box-shadow: 0 10px 30px rgba(10, 12, 20, 0.08); align-self: flex-start; }
+.sticky-actions { position: sticky; bottom: 16px; margin-top: 4px; z-index: 5; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 8px; display: flex; gap: 8px; flex-wrap: wrap; box-shadow: 0 10px 30px rgba(10, 12, 20, 0.08); align-self: flex-start; }
 @media (max-width: 680px) { .sticky-actions { border-radius: var(--r-card); align-self: stretch; } }
 
 /* ---------- CV workspace ---------- */
@@ -427,3 +427,18 @@ tr:last-child td { border-bottom: none; }
 .copy-row .k { color: var(--muted); font-weight: 600; font-size: 13px; }
 .copy-row .v { font-weight: 600; overflow-wrap: anywhere; }
 .draft-body { white-space: pre-wrap; background: var(--surface-2); border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+
+/* ---------- Personal data & forms ---------- */
+.kv { display: flex; flex-direction: column; gap: 8px; }
+.kv-row { display: grid; grid-template-columns: minmax(140px, 0.6fr) minmax(0, 1.4fr) 32px; gap: 10px; align-items: start; }
+.kv-row textarea { min-height: 42px; }
+.kv-label { font-weight: 600; font-size: 13.5px; padding-top: 10px; overflow-wrap: anywhere; }
+@media (max-width: 680px) { .kv-row { grid-template-columns: minmax(0, 1fr) 32px; } .kv-row > :nth-child(2) { grid-column: 1; } .kv-label { padding-top: 0; } }
+.sig-pad { width: 100%; aspect-ratio: 3 / 1; background: var(--paper); border: 1.5px dashed var(--line-strong); border-radius: 14px; touch-action: none; cursor: crosshair; }
+.sig-preview, .photo-preview { background: var(--paper); border-radius: 14px; border: 1px solid var(--line); padding: 16px; display: grid; place-items: center; }
+.sig-preview img { max-height: 110px; max-width: 100%; }
+.photo-preview img { max-height: 200px; border-radius: 6px; }
+.disclosure { display: flex; align-items: center; gap: 12px; width: 100%; border: none; background: transparent; font: inherit; color: inherit; cursor: pointer; padding: 0; }
+.disclosure .chev { color: var(--muted); transition: transform 0.15s; }
+.quick button.on { background: var(--cobalt); border-color: var(--cobalt); color: var(--cobalt-ink); display: inline-flex; align-items: center; gap: 4px; }
+.file-drop { position: relative; }

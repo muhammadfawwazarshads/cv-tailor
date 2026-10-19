@@ -124,6 +124,13 @@ const migrations: string[] = [
    );
    CREATE INDEX IF NOT EXISTS job_leads_user_idx ON job_leads(user_id, created_at DESC);`,
   `ALTER TABLE applications ADD COLUMN IF NOT EXISTS drafts jsonb NOT NULL DEFAULT '[]'`,
+  `CREATE TABLE IF NOT EXISTS personal_data (
+     user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+     data jsonb NOT NULL DEFAULT '{}',
+     signature text,
+     photo text,
+     updated_at timestamptz NOT NULL DEFAULT now()
+   )`,
 ];
 
 async function migrate() {

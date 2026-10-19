@@ -4,6 +4,7 @@
  * Then run:                BASE_URL=http://localhost:3999 npm run smoke
  */
 import fs from "node:fs";
+import JSZip from "jszip";
 import path from "node:path";
 
 const BASE = process.env.BASE_URL || "http://localhost:3999";
@@ -19,8 +20,8 @@ function client() {
   return async function api(method: string, url: string, body?: unknown, raw = false) {
     const res = await fetch(BASE + url, {
       method,
-      headers: { ...(body ? { "content-type": "application/json" } : {}), ...(cookie ? { cookie } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
+      headers: { ...(body && !(body instanceof FormData) ? { "content-type": "application/json" } : {}), ...(cookie ? { cookie } : {}) },
+      body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     });
     const set = res.headers.get("set-cookie");
     if (set) cookie = set.split(";")[0];
@@ -171,6 +172,50 @@ check(fromLead.status === 201 && fromLead.application.role_title === "DevOps Eng
 const leadsNow = await user("GET", "/api/leads");
 check(leadsNow.leads.find((l: any) => l.id === devops.id).status === "applied", "lead marked as applied");
 check((await admin("GET", "/api/leads")).leads.length === 0, "leads are private per user");
+
+// Personal data + company form
+const PNG_1PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+check((await user("PUT", "/api/personal", { signature: "data:text/html;base64,AAAA" })).status === 400, "non-image signature rejected");
+const pd = await user("PUT", "/api/personal", { signature: PNG_1PX, personal: { items: [{ label: "Name", value: "Alex Pratama" }] } });
+check(pd.status === 200 && pd.signature === PNG_1PX && pd.personal.items.length === 1, "save signature and remembered answer");
+check((await admin("GET", "/api/personal")).signature === null, "personal data is private per user");
+
+const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+const cell = (t: string) => `<w:tc><w:p>${t ? `<w:r><w:rPr><w:b/></w:rPr><w:t>${t}</w:t></w:r>` : ""}</w:p></w:tc>`;
+const para = (t: string) => `<w:p><w:r><w:t xml:space="preserve">${t}</w:t></w:r></w:p>`;
+const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W}><w:body>${para("DATE: 2025/10/01")}<w:tbl><w:tr>${cell("Name")}${cell("")}</w:tr><w:tr>${cell("Blood Type")}${cell("")}</w:tr></w:tbl>${para("Gender ☐ Male ☐ Female")}${para("Signature of applicant")}${para("Date: __________")}</w:body></w:document>`;
+const zip = new JSZip();
+zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`);
+zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+zip.file("word/document.xml", docXml);
+const formBuf = await zip.generateAsync({ type: "nodebuffer" });
+async function upload(url: string, extra: Record<string, string> = {}) {
+  const fd = new FormData();
+  fd.append("file", new Blob([formBuf]), "Form Data Diri.docx");
+  for (const [k, v] of Object.entries(extra)) fd.append(k, v);
+  return user("POST", url, fd as any);
+}
+const fa = await upload("/api/forms/analyze");
+const nameSlot = fa.slots?.find((x: any) => x.label === "Name");
+const bloodQ = fa.plan?.questions.find((q: any) => q.question.includes("Blood Type"));
+const sign = fa.slots?.find((x: any) => x.kind === "sign");
+check(fa.status === 200 && nameSlot && sign && fa.slots.filter((x: any) => x.kind === "check").length === 2, `form slots detected (${fa.slots?.map((x: any) => x.kind).join(",")})`);
+check(fa.plan.values.some((v: any) => v.id === nameSlot.id && v.value === "Alex Pratama"), "remembered answer fills the form");
+check(bloodQ && fa.plan.values.some((v: any) => v.value === "[[SIGNATURE]]"), "missing data becomes a question; signature placed");
+const male = fa.slots.find((x: any) => x.kind === "check" && x.label === "Male");
+const ff = await upload("/api/forms/fill", {
+  fill: JSON.stringify({
+    values: { ...Object.fromEntries(fa.plan.values.map((v: any) => [v.id, v.value])), [bloodQ.slotIds[0]]: "B" },
+    checks: [male.id],
+    replacements: [{ find: "DATE: 2025/10/01", replace: "DATE: 2026/10/19" }],
+  }),
+});
+check(ff.status === 200 && ff.filled >= 5, `fill form (${ff.filled} fields)`);
+const outZip = await JSZip.loadAsync(Buffer.from(ff.file ?? "", "base64"));
+const outXml = (await outZip.file("word/document.xml")?.async("string")) ?? "";
+check(outXml.includes("Alex Pratama") && outXml.includes(">B<") && outXml.includes("☒ Male") && outXml.includes("2026/10/19"), "filled values written into the document");
+check(Object.keys(outZip.files).some((f) => f.startsWith("word/media/")) && outXml.includes("r:embed"), "signature image embedded");
+check((await user("POST", "/api/forms/analyze", { not: "a file" })).status === 400, "analyze without a file rejected");
 
 // Isolation between users
 check((await admin("GET", `/api/applications/${app.id}`)).status === 404, "other users cannot read the application");
