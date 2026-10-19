@@ -1,5 +1,7 @@
 # CV Tailor
 
+[![CI](https://github.com/muhammadfawwazarshads/cv-tailor/actions/workflows/ci.yml/badge.svg)](https://github.com/muhammadfawwazarshads/cv-tailor/actions/workflows/ci.yml)
+
 Aplikasi web untuk menyesuaikan CV ke setiap lowongan **tanpa mengarang pengalaman**.
 
 Alurnya meniru proses manual yang paling efektif:
@@ -110,6 +112,14 @@ BASE_URL=http://localhost:3999 npm run smoke
 Smoke test menjalankan seluruh alur lewat API: registrasi, hak akses admin, enkripsi API key, impor profil, analisis, jawaban dan fakta, CV, revisi, edit manual, PDF, isolasi data antar-pengguna, serta fallback dan pesan error saat semua provider gagal.
 
 `npm run typecheck` memeriksa tipe frontend dan backend.
+
+### CI
+
+Workflow GitHub Actions (`.github/workflows/ci.yml`) berjalan di setiap push dan pull request:
+
+1. **Typecheck dan build** frontend serta backend.
+2. **Smoke test end-to-end** dua kali: dengan PGlite dan dengan PostgreSQL 16 sebagai service container. PDF hasil tes diunggah sebagai artifact.
+3. **Docker**: image dibangun, container dijalankan, lalu health check `/api/health` harus menjawab.
 
 ## Struktur
 

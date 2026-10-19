@@ -6,3 +6,6 @@ data-*
 scripts/tmp
 .env
 *.log
+data-ci
+smoke-output
+server.log

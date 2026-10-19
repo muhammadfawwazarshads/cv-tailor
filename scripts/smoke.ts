@@ -119,7 +119,9 @@ check(m.status === 200 && m.version.number === 3 && m.version.data.headline === 
 
 const pdf = await user("GET", `/api/applications/${app.id}/versions/${m.version.id}/pdf`, undefined, true);
 check(pdf.status === 200 && pdf.buf.subarray(0, 4).toString() === "%PDF", `PDF export (${pdf.buf.length} bytes)`);
-fs.writeFileSync(path.resolve("scripts/tmp/smoke.pdf"), pdf.buf);
+const outDir = path.resolve(process.env.SMOKE_OUT_DIR || "scripts/tmp");
+fs.mkdirSync(outDir, { recursive: true });
+fs.writeFileSync(path.join(outDir, "smoke.pdf"), pdf.buf);
 
 const st = await user("PATCH", `/api/applications/${app.id}`, { status: "applied" });
 check(st.application.status === "applied", "update status");

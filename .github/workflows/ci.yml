@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist-client
+            dist-server
+          retention-days: 7
+
+  smoke:
+    name: End-to-end smoke test (${{ matrix.database }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [pglite, postgres]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cvtailor
+          POSTGRES_PASSWORD: cvtailor
+          POSTGRES_DB: cvtailor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cvtailor"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PORT: 3999
+      ENABLE_MOCK_LLM: "true"
+      DATA_DIR: ./data-ci
+      APP_SECRET: ci-only-secret-0123456789abcdefghijklmnopqrstuvwxyz
+      DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgres://cvtailor:cvtailor@localhost:5432/cvtailor' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:server
+      - name: Start server with the mock LLM
+        run: |
+          node dist-server/index.js > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3999/api/health && exit 0
+            sleep 1
+          done
+          echo "Server did not start"; cat server.log; exit 1
+      - name: Run smoke test
+        run: npm run smoke
+        env:
+          BASE_URL: http://localhost:3999
+          SMOKE_OUT_DIR: smoke-output
+      - name: Server log
+        if: always()
+        run: cat server.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.database }}
+          path: smoke-output
+          retention-days: 7
+          if-no-files-found: ignore
+
+  docker:
+    name: Docker image builds
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t cv-tailor:ci .
+      - name: Container starts and answers health checks
+        run: |
+          docker run -d --name app -p 3000:3000 \
+            -e APP_SECRET=ci-only-secret-0123456789abcdefghijklmnopqrstuvwxyz \
+            cv-tailor:ci
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/api/health && exit 0
+            sleep 1
+          done
+          docker logs app; exit 1

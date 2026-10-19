@@ -1,0 +1,10 @@
+node_modules
+dist-client
+dist-server
+data
+data-*
+smoke-output
+scripts/tmp
+server.log
+.env
+.git
