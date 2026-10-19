@@ -308,24 +308,24 @@ function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow;
             {lead.company || "Perusahaan tidak disebut"}
             {meta && <span className="muted"> · {meta}</span>}
           </div>
-          <div className="chips">
-            <span className={`chip ${TIER[d.companyTier].tone}`}>{TIER[d.companyTier].label}</span>
-            <span className={`chip dot ${REC[d.recommendation].tone}`}>{REC[d.recommendation].label}</span>
-            {d.category && <span className="chip">{d.category}</span>}
+          <div className="lead-meta">
+            <span className={`rec ${d.recommendation}`}>{REC[d.recommendation].label}</span>
+            <span>{TIER[d.companyTier].label}</span>
+            {d.category && <span>{d.category}</span>}
             {d.manufacturing && (
-              <span className="chip blue">
+              <span>
                 <Factory size={13} /> Manufaktur
               </span>
             )}
-            {d.redFlags.length > 0 && (
-              <span className="chip bad">
-                <TriangleAlert size={13} /> {d.redFlags.length} tanda bahaya
+            {!d.hasDetails && <span>Baru ringkasan</span>}
+            {lead.status === "saved" && (
+              <span>
+                <BookmarkCheck size={13} /> Disimpan
               </span>
             )}
-            {!d.hasDetails && <span className="chip gap">Hanya ringkasan</span>}
-            {lead.status === "saved" && (
-              <span className="chip">
-                <BookmarkCheck size={13} /> Disimpan
+            {d.redFlags.length > 0 && (
+              <span className="warn">
+                <TriangleAlert size={13} /> {d.redFlags.length} tanda bahaya
               </span>
             )}
           </div>
