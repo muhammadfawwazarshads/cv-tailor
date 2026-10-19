@@ -10,6 +10,8 @@ import {
   Factory,
   Minus,
   Search,
+  SlidersHorizontal,
+  Sparkles,
   Target,
   Trash2,
   TriangleAlert,
@@ -18,8 +20,7 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Application, type LeadRow } from "../api";
-import { Busy, ErrorBox, Field, Loading, useAction } from "../components/ui";
-import { FitBar } from "./ApplicationsPage";
+import { Busy, ErrorBox, Field, Loading, Toast, useAction } from "../components/ui";
 
 const PREF_KEY = "cv-tailor:lead-preferences";
 const FILTER_KEY = "cv-tailor:lead-filters";
@@ -71,6 +72,7 @@ export function LeadsPage() {
   const [filters, setFilters] = useState<Filters>(() => readStore(FILTER_KEY, DEFAULT_FILTERS));
   const [open, setOpen] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const { error, run } = useAction();
 
   useEffect(() => {
@@ -79,6 +81,8 @@ export function LeadsPage() {
   useEffect(() => writeStore(FILTER_KEY, filters), [filters]);
 
   const set = (patch: Partial<Filters>) => setFilters((f) => ({ ...f, ...patch }));
+
+  const activeFilters = filters.tiers.length + (filters.minFit ? 1 : 0) + (filters.hideFlags ? 1 : 0) + (filters.manufacturing ? 1 : 0);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: leads?.length ?? 0 };
@@ -115,72 +119,82 @@ export function LeadsPage() {
   return (
     <>
       <section className="hero">
-        <div className="orb" aria-hidden />
-        <h1>Lowongan mana yang layak kamu kejar?</h1>
-        <p>Tempel halaman LinkedIn (Ctrl+A, Ctrl+C). Tiap lowongan dinilai: perusahaannya, tanda bahayanya, dan kecocokannya dengan profilmu.</p>
+        <Sparkles className="spark-ico" size={26} aria-hidden />
+        <span className="eyebrow">Lowongan</span>
+        <h1>Lowongan mana yang mau dinilai?</h1>
       </section>
       <PasteBox onAdded={added} />
-      {notice && (
-        <div className="alert info" style={{ marginBottom: 16 }}>
-          <span>{notice}</span>
-        </div>
-      )}
+      {notice && <Toast text={notice} onDone={() => setNotice(null)} />}
       <ErrorBox error={error} />
 
       {leads === null ? (
         <Loading />
       ) : leads.length === 0 ? null : (
         <>
-          <div className="segmented" role="tablist">
-            {TABS.map((t) => (
-              <button key={t.key} role="tab" aria-selected={filters.tab === t.key} className={filters.tab === t.key ? "active" : ""} onClick={() => set({ tab: t.key })}>
-                {t.label} <span className="n">{counts[t.key] ?? 0}</span>
+          <div className="section-title">Hasil penilaian</div>
+          <div className="toolbar">
+            <div className="segmented" role="tablist">
+              {TABS.map((t) => (
+                <button key={t.key} role="tab" aria-selected={filters.tab === t.key} className={filters.tab === t.key ? "active" : ""} onClick={() => set({ tab: t.key })}>
+                  {t.label} <span className="n">{counts[t.key] ?? 0}</span>
+                </button>
+              ))}
+            </div>
+            <div className="toolbar-right">
+              <label className="search mini">
+                <Search size={15} />
+                <input type="text" aria-label="Cari lowongan" placeholder="Cari" value={filters.q} onChange={(e) => set({ q: e.target.value })} />
+              </label>
+              <button className={`btn sm${activeFilters ? " on" : ""}`} onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters}>
+                <SlidersHorizontal size={15} /> Filter{activeFilters ? ` (${activeFilters})` : ""}
               </button>
-            ))}
-          </div>
-
-          <div className="filters">
-            <div className="search">
-              <Search size={16} />
-              <input type="text" aria-label="Cari lowongan" placeholder="Cari posisi, perusahaan, lokasi" value={filters.q} onChange={(e) => set({ q: e.target.value })} />
-            </div>
-            <div className="toggles" role="group" aria-label="Ukuran perusahaan">
-              {(["large", "mid", "small", "unknown"] as const).map((t) => {
-                const on = filters.tiers.includes(t);
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    aria-pressed={on}
-                    className={`toggle${on ? " on" : ""}`}
-                    onClick={() => set({ tiers: on ? filters.tiers.filter((x) => x !== t) : [...filters.tiers, t] })}
-                  >
-                    {on && <Check size={14} />} {TIER[t].label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="row">
-              <label className="check">
-                <input type="checkbox" checked={filters.hideFlags} onChange={(e) => set({ hideFlags: e.target.checked })} /> Sembunyikan yang ada tanda bahaya
-              </label>
-              <label className="check">
-                <input type="checkbox" checked={filters.manufacturing} onChange={(e) => set({ manufacturing: e.target.checked })} /> Manufaktur saja
-              </label>
-              <select aria-label="Skor minimal" value={filters.minFit} onChange={(e) => set({ minFit: Number(e.target.value) })} style={{ width: "auto" }}>
-                <option value={0}>Semua skor</option>
-                <option value={50}>Skor 50+</option>
-                <option value={70}>Skor 70+</option>
-              </select>
-              <select aria-label="Urutan" value={filters.sort} onChange={(e) => set({ sort: e.target.value as Filters["sort"] })} style={{ width: "auto" }}>
-                <option value="fit">Paling cocok</option>
-                <option value="new">Terbaru</option>
-              </select>
             </div>
           </div>
+          {showFilters && (
+            <div className="popover-panel">
+              <div className="pp-row">
+                <span className="pp-label">Ukuran perusahaan</span>
+                <div className="seg-mini">
+                  {(["large", "mid", "small", "unknown"] as const).map((t) => {
+                    const on = filters.tiers.includes(t);
+                    return (
+                      <button key={t} type="button" aria-pressed={on} className={on ? "on" : ""} onClick={() => set({ tiers: on ? filters.tiers.filter((x) => x !== t) : [...filters.tiers, t] })}>
+                        {TIER[t].label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="pp-row">
+                <span className="pp-label">Skor minimal</span>
+                <div className="seg-mini">
+                  {[0, 50, 70].map((v) => (
+                    <button key={v} type="button" aria-pressed={filters.minFit === v} className={filters.minFit === v ? "on" : ""} onClick={() => set({ minFit: v })}>
+                      {v ? `${v}+` : "Semua"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="pp-row">
+                <span className="pp-label">Urutkan</span>
+                <div className="seg-mini">
+                  <button type="button" className={filters.sort === "fit" ? "on" : ""} onClick={() => set({ sort: "fit" })}>Paling cocok</button>
+                  <button type="button" className={filters.sort === "new" ? "on" : ""} onClick={() => set({ sort: "new" })}>Terbaru</button>
+                </div>
+              </div>
+              <div className="pp-row">
+                <label className="check">
+                  <input type="checkbox" checked={filters.hideFlags} onChange={(e) => set({ hideFlags: e.target.checked })} /> Tanpa tanda bahaya
+                </label>
+                <label className="check">
+                  <input type="checkbox" checked={filters.manufacturing} onChange={(e) => set({ manufacturing: e.target.checked })} /> Manufaktur saja
+                </label>
+              </div>
+            </div>
+          )}
 
           {shown.length ? (
-            <div className="leads">
+            <div className="leads rows">
               {shown.map((l) => (
                 <LeadCard key={l.id} lead={l} open={open === l.id} onToggle={() => setOpen(open === l.id ? null : l.id)} onChange={replace} onDelete={() => setLeads((cur) => (cur ?? []).filter((x) => x.id !== l.id))} />
               ))}
@@ -231,6 +245,16 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
 
   return (
     <>
+      {!text && !busy && (
+        <div className="starters">
+          {STARTERS.map((st) => (
+            <button key={st.title} type="button" className={`starter ${st.tone}`} onClick={pasteClipboard} title={st.text}>
+              <b>{st.title}</b>
+              <i className="cube" aria-hidden />
+            </button>
+          ))}
+        </div>
+      )}
       <form className="composer chat" onSubmit={submit}>
         <textarea
           aria-label="Teks halaman lowongan"
@@ -265,27 +289,14 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
         <ErrorBox error={error} />
         {busy && <Busy>Memilah lowongan, menilai perusahaan, dan mencocokkan dengan profilmu</Busy>}
       </form>
-      {!text && !busy && (
-        <div className="starters">
-          {STARTERS.map((st) => (
-            <button key={st.title} type="button" className={`starter ${st.tone}`} onClick={pasteClipboard}>
-              <span className="thumb" aria-hidden>
-                <i />
-              </span>
-              <b>{st.title}</b>
-              <span>{st.text}</span>
-            </button>
-          ))}
-        </div>
-      )}
     </>
   );
 }
 
 const STARTERS = [
-  { title: "Hasil pencarian Jobs", text: "Semua kartu di daftar ikut terbaca sebagai ringkasan.", tone: "a" },
-  { title: "Satu lowongan lengkap", text: "Deskripsinya utuh, bisa langsung jadi lamaran.", tone: "b" },
-  { title: "Postingan rekrutmen", text: "Postingan HR atau agensi di feed LinkedIn.", tone: "c" },
+  { title: "Tempel hasil pencarian Jobs", text: "Semua kartu di daftar ikut terbaca sebagai ringkasan.", tone: "a" },
+  { title: "Tempel satu lowongan lengkap", text: "Deskripsinya utuh, bisa langsung jadi lamaran.", tone: "b" },
+  { title: "Tempel postingan rekrutmen", text: "Postingan HR atau agensi di feed LinkedIn.", tone: "c" },
 ];
 
 function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow; open: boolean; onToggle: () => void; onChange: (l: LeadRow) => void; onDelete: () => void }) {
@@ -321,6 +332,9 @@ function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow;
   return (
     <article className={`lead${open ? " open" : ""}${lead.status === "dismissed" ? " dim" : ""}`}>
       <button className="lead-head" onClick={onToggle} aria-expanded={open}>
+        <span className={`co-avatar ${d.recommendation}`} aria-hidden>
+          {(lead.company || lead.title).trim().slice(0, 1).toUpperCase()}
+        </span>
         <div style={{ minWidth: 0 }}>
           <div className="title">{lead.title}</div>
           <div className="company">
@@ -349,7 +363,10 @@ function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow;
             )}
           </div>
         </div>
-        <FitBar score={d.fitScore} />
+        <div className="score">
+          <b>{d.fitScore}</b>
+          <span>kecocokan</span>
+        </div>
         <ChevronDown size={18} className="chev" />
       </button>
 

@@ -126,6 +126,17 @@ function Shell() {
           </button>
           CV Tailor
         </div>
+        <div className="topbar">
+          {user!.role === "admin" && (
+            <NavLink to="/admin/providers" className="tb-chip">
+              <span className="live" aria-hidden /> Provider AI
+            </NavLink>
+          )}
+          <NavLink to="/profile" className="tb-account">
+            <span className="avatar sm">{(user!.name || user!.email).slice(0, 1).toUpperCase()}</span>
+            {user!.name || "Akun"}
+          </NavLink>
+        </div>
         <main className="main">
           <Routes>
             <Route path="/" element={<Navigate to="/applications" replace />} />

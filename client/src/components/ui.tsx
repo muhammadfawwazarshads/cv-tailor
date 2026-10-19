@@ -103,3 +103,20 @@ export function useAction() {
   }
   return { busy, error, setError, run };
 }
+
+/** Small confirmation in the bottom-right corner that disappears by itself. */
+export function Toast({ text, onDone }: { text: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 6000);
+    return () => clearTimeout(t);
+  }, [text]);
+  return (
+    <div className="toast" role="status">
+      <span className="dot" aria-hidden />
+      <div>{text}</div>
+      <button className="icon-btn" onClick={onDone} aria-label="Tutup">
+        <X size={15} />
+      </button>
+    </div>
+  );
+}
