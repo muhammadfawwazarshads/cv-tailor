@@ -332,6 +332,10 @@ tr:last-child td { border-bottom: none; }
 .prov .name { font-weight: 700; }
 .prov .actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
 .prov .test { font-size: 12.5px; font-weight: 600; margin-top: 3px; }
+.prov .model code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prov .test-result { grid-column: 2 / -1; font-size: 12.5px; line-height: 1.5; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,.04); color: var(--muted); overflow-wrap: anywhere; }
+.prov .test-result.ok { color: var(--lime-ink); }
+.prov .test-result.bad { color: var(--rose); background: rgba(235,87,87,.08); }
 @media (max-width: 900px) { .prov { grid-template-columns: 40px minmax(0, 1fr); } .prov .model, .prov .stat { grid-column: 2; } .prov .actions { grid-column: 1 / -1; justify-content: flex-start; } }
 .switch { position: relative; width: 38px; height: 22px; flex: none; }
 .switch input { opacity: 0; width: 100%; height: 100%; margin: 0; position: absolute; cursor: pointer; z-index: 1; }

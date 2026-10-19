@@ -144,15 +144,10 @@ export function ProvidersPage() {
                     {TYPE_INFO[p.type]?.label ?? p.type}
                     {p.api_key_masked && <>, key <code>{p.api_key_masked}</code></>}
                   </div>
-                  {t && (
-                    <div className="test" style={{ color: t.busy ? "var(--muted)" : t.ok ? "var(--lime-ink)" : "var(--rose)" }}>
-                      {t.busy ? "Menguji koneksi" : t.text}
-                    </div>
-                  )}
                   {p.type === "mock" && !mockEnabled && <div className="test" style={{ color: "var(--amber)" }}>Dilewati karena ENABLE_MOCK_LLM mati</div>}
                 </div>
                 <div className="model" style={{ minWidth: 0 }}>
-                  <code>{p.model || "-"}</code>
+                  <code title={p.model}>{p.model || "-"}</code>
                   {p.base_url && <div className="small muted" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{p.base_url}</div>}
                 </div>
                 <div className="stat small">
@@ -204,6 +199,11 @@ export function ProvidersPage() {
                   </button>
                   <Switch checked={p.enabled} onChange={() => toggle(p)} label={`Aktifkan ${p.name}`} />
                 </div>
+                {t && (
+                  <div className={`test-result${t.busy ? "" : t.ok ? " ok" : " bad"}`} role="status">
+                    {t.busy ? "Menguji koneksi…" : t.text}
+                  </div>
+                )}
               </div>
             );
           })}
