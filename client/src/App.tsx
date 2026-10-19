@@ -1,10 +1,11 @@
-import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, Layers, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Radar, Users } from "lucide-react";
+import { Menu } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
 import { APP_NAME, TAGLINE } from "./brand";
 import { Tour, tourHidden } from "./components/Tour";
 import { LogoMark } from "./components/Logo";
+import { IcBahan, IcForm, IcLamaran, IcLogout, IcLowongan, IcPanel, IcProvider, IcTour, IcUsage, IcUsers } from "./components/NavIcons";
 import { Loading } from "./components/ui";
 import { Welcome } from "./components/Welcome";
 import { ProvidersPage } from "./pages/admin/ProvidersPage";
@@ -114,40 +115,40 @@ function Shell() {
         <Brand />
         <nav className="nav">
           <NavLink to="/leads">
-            <Radar size={18} strokeWidth={1.8} /><span className="lbl">Lowongan</span>
+            <IcLowongan /><span className="lbl">Lowongan</span>
           </NavLink>
           <NavLink to="/applications">
-            <Briefcase size={18} strokeWidth={1.8} /><span className="lbl">Lamaran</span>
+            <IcLamaran /><span className="lbl">Lamaran</span>
           </NavLink>
           <NavLink to="/forms" data-tour="nav-forms">
-            <FileSignature size={18} strokeWidth={1.8} /><span className="lbl">Form HR</span>
+            <IcForm /><span className="lbl">Form HR</span>
           </NavLink>
           <NavLink to="/profile" data-tour="nav-bahan">
-            <Layers size={18} strokeWidth={1.8} /><span className="lbl">Bahan CV</span>
+            <IcBahan /><span className="lbl">Bahan CV</span>
           </NavLink>
           {isAdmin && (
             <>
               <div className="nav-label" role="separator" aria-label={STANDALONE ? "Pengaturan" : "Pengaturan admin"} />
               <NavLink to="/admin/providers">
-                <Cpu size={18} strokeWidth={1.8} /><span className="lbl">Provider AI</span>
+                <IcProvider /><span className="lbl">Provider AI</span>
               </NavLink>
               <NavLink to="/admin/usage">
-                <Activity size={18} strokeWidth={1.8} /><span className="lbl">Pemakaian AI</span>
+                <IcUsage /><span className="lbl">Pemakaian AI</span>
               </NavLink>
               {!STANDALONE && (
                 <NavLink to="/admin/users">
-                  <Users size={18} strokeWidth={1.8} /><span className="lbl">Pengguna</span>
+                  <IcUsers /><span className="lbl">Pengguna</span>
                 </NavLink>
               )}
             </>
           )}
         </nav>
         <button className="help-btn" onClick={() => setTour(true)} aria-label="Buka tur aplikasi" title="Tur aplikasi">
-          <CircleHelp size={18} strokeWidth={1.8} />
+          <IcTour />
           <span className="lbl">Tur aplikasi</span>
         </button>
         <button className="help-btn rail-toggle" onClick={toggleWide} aria-label={wide ? "Ciutkan sidebar" : "Lebarkan sidebar"} title={wide ? "Ciutkan" : "Lebarkan"}>
-          {wide ? <PanelLeftClose size={18} strokeWidth={1.8} /> : <PanelLeftOpen size={18} strokeWidth={1.8} />}
+          <IcPanel open={wide} />
           <span className="lbl">{wide ? "Ciutkan" : "Lebarkan"}</span>
         </button>
         <div className="me">
@@ -158,7 +159,7 @@ function Shell() {
           </div>
           {!STANDALONE && (
             <button className="icon-btn" onClick={logout} aria-label="Keluar" title="Keluar">
-              <LogOut size={17} />
+              <IcLogout size={18} />
             </button>
           )}
         </div>

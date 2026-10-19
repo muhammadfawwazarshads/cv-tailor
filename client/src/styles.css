@@ -1272,3 +1272,13 @@ button.sew-knot:hover { transform: scale(1.1); }
 .td-avg { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
 .td-avg b { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .td-avg span { font-size: 11px; color: var(--muted); }
+
+/* Sidebar icons (NavIcons.tsx): two-tone like the logo; grey at rest, lilac + white when active */
+.nav-ic { flex: none; display: block; }
+.nav-ic .b { fill: currentColor; opacity: .28; transition: fill .15s, opacity .15s; }
+.nav-ic .d:not([fill="none"]) { fill: currentColor; transition: fill .15s; }
+.nav-ic .d[fill="none"] { stroke: currentColor; transition: stroke .15s; }
+.nav a:hover .nav-ic .b, .help-btn:hover .nav-ic .b, .icon-btn:hover .nav-ic .b { opacity: .4; }
+.nav a.active .nav-ic .b { fill: var(--iris); opacity: 1; }
+.nav a.active .nav-ic .d:not([fill="none"]) { fill: #fff; }
+.nav a.active .nav-ic .d[fill="none"] { stroke: #fff; }
