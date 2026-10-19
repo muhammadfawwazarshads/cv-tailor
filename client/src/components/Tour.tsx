@@ -1,22 +1,28 @@
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Mascot, type MascotPose } from "./Mascot";
+import { Confetti, DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, DemoResults, DemoSign, DemoStats } from "./TourDemos";
 
 /**
  * Guided product tour: a spotlight glides from one part of the app to the next while a card explains it.
  * Steps can switch pages; a step whose element is missing falls back to a centered card.
+ * Jahit the mascot rides along in the card, pointing at the spotlight, and each step plays a short
+ * demo with example data so the flow makes sense before the user has data of their own.
  */
-type Step = { route?: string; target?: string; title: string; body: string; place?: "bottom" | "top" | "right" | "left" };
+type Step = { route?: string; target?: string; title: string; body: string; place?: "bottom" | "top" | "right" | "left"; demo?: ComponentType };
 
 const STEPS: Step[] = [
   {
     title: "Selamat datang di CV Tailor",
+    demo: DemoFlow,
     body: "Alurnya empat langkah: pilah lowongan, nilai kecocokan, buat CV dan email, lalu isi form perusahaan. Tur ini memakan kurang dari satu menit.",
   },
   {
     route: "/leads",
     target: '[data-tour="starters"]',
     title: "Mulai dari LinkedIn",
+    demo: DemoCopy,
     body: "Buka hasil pencarian, satu lowongan, atau postingan rekrutmen di LinkedIn. Tekan Ctrl+A lalu Ctrl+C. Klik salah satu kartu ini untuk menempel isi clipboard.",
     place: "bottom",
   },
@@ -24,6 +30,7 @@ const STEPS: Step[] = [
     route: "/leads",
     target: '[data-tour="composer"]',
     title: "Tempel, lalu kirim",
+    demo: DemoPaste,
     body: "Teks menu dan iklan ikut tersalin tidak masalah. Isi Fokus pencarian sekali (misalnya DevOps, Jabodetabek), lalu tekan tombol panah.",
     place: "bottom",
   },
@@ -31,6 +38,7 @@ const STEPS: Step[] = [
     route: "/leads",
     target: '[data-tour="results"]',
     title: "Lowongan sudah dinilai",
+    demo: DemoResults,
     body: "Tiap lowongan dapat skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Buka satu baris untuk membuat lamaran dan CV.",
     place: "top",
   },
@@ -38,6 +46,7 @@ const STEPS: Step[] = [
     route: "/applications",
     target: '[data-tour="stats"]',
     title: "Pantau semua lamaran",
+    demo: DemoStats,
     body: "Rata-rata kecocokan, CV yang siap, yang sudah dikirim, dan yang sampai interview. Lowongan dari luar LinkedIn bisa ditambah dengan tombol putih.",
     place: "bottom",
   },
@@ -45,24 +54,28 @@ const STEPS: Step[] = [
     route: "/applications",
     target: '[data-tour="app-list"]',
     title: "Di dalam satu lamaran",
+    demo: DemoConfirm,
     body: "Jawab pertanyaan konfirmasi supaya CV tetap jujur, lalu buat CV, unduh PDF, dan tulis email lamaran di tab Email.",
     place: "top",
   },
   {
     target: '[data-tour="nav-forms"]',
     title: "Form data diri perusahaan",
+    demo: DemoForm,
     body: "Unggah form .docx dari HR. Yang sudah diketahui diisi otomatis, sisanya ditanyakan sekali dan diingat untuk form berikutnya.",
     place: "right",
   },
   {
     target: '[data-tour="nav-personal"]',
     title: "Simpan tanda tanganmu",
+    demo: DemoSign,
     body: "Gambar atau unggah tanda tangan sekali di Data pribadi. Tanda tangan otomatis ditempel di setiap form.",
     place: "right",
   },
   {
     target: '[data-tour="provider"]',
     title: "Sambungkan AI",
+    demo: DemoProvider,
     body: "Tambahkan API key (Claude, OpenAI, Gemini, atau lainnya) di Provider AI. Kalau satu gagal, aplikasi otomatis pindah ke yang berikutnya.",
     place: "bottom",
   },
@@ -92,10 +105,19 @@ function markSeen() {
 
 type Rect = { x: number; y: number; w: number; h: number };
 
+// The mascot sits at the card's lower left; aim its arm at the spotlight.
+function pointAt(target: Rect, card: Rect): MascotPose {
+  const dx = target.x + target.w / 2 - (card.x + 50);
+  const dy = target.y + target.h / 2 - (card.y + card.h - 60);
+  if (Math.abs(dx) > Math.abs(dy) * 1.2) return dx < 0 ? "point-left" : "point-right";
+  return dy < 0 ? "point-up" : "point-down";
+}
+
 export function Tour({ onClose }: { onClose: () => void }) {
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [cardPos, setCardPos] = useState<{ left: number; top: number } | null>(null);
+  const [pose, setPose] = useState<MascotPose>("wave");
   const card = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,7 +183,14 @@ export function Tour({ onClose }: { onClose: () => void }) {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     if (!rect || vw < 700) {
-      setCardPos(rect ? { left: (vw - cw) / 2, top: rect.y + rect.h + 14 + ch < vh ? rect.y + rect.h + 14 : Math.max(12, rect.y - ch - 14) } : null);
+      if (!rect) {
+        setPose(last ? "cheer" : "wave");
+        setCardPos(null);
+        return;
+      }
+      const pos = { left: (vw - cw) / 2, top: rect.y + rect.h + 14 + ch < vh ? rect.y + rect.h + 14 : Math.max(12, rect.y - ch - 14) };
+      setCardPos(pos);
+      setPose(pointAt(rect, { x: pos.left, y: pos.top, w: cw, h: ch }));
       return;
     }
     const gap = 16;
@@ -181,6 +210,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
     left = Math.max(12, Math.min(vw - cw - 12, left));
     top = Math.max(12, Math.min(vh - ch - 12, top));
     setCardPos({ left, top });
+    setPose(pointAt(rect, { x: left, y: top, w: cw, h: ch }));
   }, [rect, i]);
 
   useEffect(() => {
@@ -194,6 +224,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
   }, [last, close]);
 
   const centered = !rect;
+  const Demo = step.demo;
 
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-label="Tur aplikasi">
@@ -204,16 +235,34 @@ export function Tour({ onClose }: { onClose: () => void }) {
       <div className="tour-catch" onClick={close} />
       <div
         ref={card}
-        key={i}
         className={`tour-card${centered ? " centered" : ""}`}
         style={!centered && cardPos ? { left: cardPos.left, top: cardPos.top } : undefined}
       >
-        {centered && <div className="tour-orb" aria-hidden />}
-        <div className="tour-step">
-          {i + 1} dari {STEPS.length}
+        {centered && last && <Confetti />}
+        {centered && (
+          <div className="tour-hero">
+            <Mascot size={150} pose={last ? "cheer" : "wave"} />
+          </div>
+        )}
+        {Demo && (
+          <div className="tour-stage" key={`d${i}`}>
+            <Demo />
+          </div>
+        )}
+        <div className="tour-text" key={`t${i}`}>
+          {!centered && (
+            <div className="tour-guide">
+              <Mascot size={92} pose={pose} />
+            </div>
+          )}
+          <div>
+            <div className="tour-step">
+              {i + 1} dari {STEPS.length}
+            </div>
+            <h2>{step.title}</h2>
+            <p>{step.body}</p>
+          </div>
         </div>
-        <h2>{step.title}</h2>
-        <p>{step.body}</p>
         <div className="tour-progress" aria-hidden>
           <i style={{ width: `${((i + 1) / STEPS.length) * 100}%` }} />
         </div>

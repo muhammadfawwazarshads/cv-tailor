@@ -32,7 +32,7 @@ export function AuthPage() {
       <section className="auth-story">
         <Brand />
         <div>
-          <Mascot size={132} className="auth-mascot" />
+          <Mascot size={150} pose="wave" className="auth-mascot" />
           <h1>Satu CV untuk setiap lowongan</h1>
           <p>Tempel deskripsi pekerjaan. CV Tailor menilai kecocokanmu, menanyakan hal yang belum jelas, lalu menulis ulang CV dari pengalamanmu sendiri.</p>
         </div>
