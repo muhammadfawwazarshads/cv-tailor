@@ -8,6 +8,7 @@ import { initDb } from "./db/index.js";
 import { errorHandler } from "./http.js";
 import { adminRouter } from "./routes/admin.js";
 import { applicationsRouter } from "./routes/applications.js";
+import { leadsRouter } from "./routes/leads.js";
 import { factsRouter, profileRouter } from "./routes/profile.js";
 
 await initDb();
@@ -42,6 +43,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/facts", factsRouter);
 app.use("/api/applications", applicationsRouter);
+app.use("/api/leads", leadsRouter);
 app.use("/api/admin/users", usersRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api", (_req, res) => res.status(404).json({ error: "Endpoint tidak ditemukan." }));

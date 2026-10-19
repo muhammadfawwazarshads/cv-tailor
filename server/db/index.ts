@@ -111,6 +111,18 @@ const migrations: string[] = [
    );
    CREATE INDEX IF NOT EXISTS ai_usage_created_idx ON ai_usage(created_at DESC);
    CREATE INDEX IF NOT EXISTS ai_usage_user_idx ON ai_usage(user_id, created_at DESC);`,
+  `CREATE TABLE IF NOT EXISTS job_leads (
+     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     data jsonb NOT NULL,
+     title text NOT NULL,
+     company text NOT NULL DEFAULT '',
+     status text NOT NULL DEFAULT 'new',
+     application_id uuid REFERENCES applications(id) ON DELETE SET NULL,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     updated_at timestamptz NOT NULL DEFAULT now()
+   );
+   CREATE INDEX IF NOT EXISTS job_leads_user_idx ON job_leads(user_id, created_at DESC);`,
 ];
 
 async function migrate() {

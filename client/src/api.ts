@@ -1,6 +1,17 @@
-import type { Analysis, Answer, CvDocument, Profile, TailorResult } from "../../server/shared/schemas";
+import type { Analysis, Answer, CvDocument, Lead, Profile, TailorResult } from "../../server/shared/schemas";
 
-export type { Analysis, Answer, CvDocument, Profile };
+export type { Analysis, Answer, CvDocument, Lead, Profile };
+
+export type LeadRow = {
+  id: string;
+  data: Lead;
+  title: string;
+  company: string;
+  status: "new" | "saved" | "dismissed" | "applied";
+  application_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 export type User = { id: string; email: string; name: string; role: "admin" | "user" };
 

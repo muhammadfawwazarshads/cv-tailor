@@ -1,4 +1,4 @@
-import { Activity, Briefcase, Cpu, LogOut, Menu, Scissors, UserRound, Users } from "lucide-react";
+import { Activity, Briefcase, Cpu, LogOut, Menu, Radar, Scissors, UserRound, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
@@ -9,6 +9,7 @@ import { UsersPage } from "./pages/admin/UsersPage";
 import { ApplicationPage } from "./pages/ApplicationPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { AuthPage } from "./pages/AuthPage";
+import { LeadsPage } from "./pages/LeadsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
 type AuthCtx = { user: User | null; setUser: (u: User | null) => void };
@@ -70,6 +71,9 @@ function Shell() {
       <aside className={`sidebar${open ? " open" : ""}`}>
         <Brand />
         <nav className="nav">
+          <NavLink to="/leads">
+            <Radar size={18} /> Lowongan
+          </NavLink>
           <NavLink to="/applications">
             <Briefcase size={18} /> Lamaran
           </NavLink>
@@ -116,6 +120,7 @@ function Shell() {
         <main className="main">
           <Routes>
             <Route path="/" element={<Navigate to="/applications" replace />} />
+            <Route path="/leads" element={<LeadsPage />} />
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/applications/:id" element={<ApplicationPage />} />
             <Route path="/profile" element={<ProfilePage />} />

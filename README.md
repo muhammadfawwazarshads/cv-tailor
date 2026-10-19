@@ -13,6 +13,17 @@ Alurnya meniru proses manual yang paling efektif:
 5. **Revisi lewat instruksi** ("ganti jadi Technology Consultant", "Kubernetes hapus") atau edit manual. Setiap revisi tersimpan sebagai versi baru.
 6. **Unduh PDF** yang ATS-friendly: satu kolom, tanpa tabel, teks bisa dipilih, karakter aman untuk parser.
 
+### Lowongan: pilah lowongan dari LinkedIn
+
+Menu **Lowongan** menampung lowongan sebelum kamu memutuskan melamar. LinkedIn tidak menyediakan API untuk mencari lowongan, dan scraping melanggar ketentuannya, jadi alurnya salin-tempel:
+
+1. Buka halaman hasil pencarian, satu lowongan, atau postingan rekrutmen di LinkedIn (atau situs lain), tekan Ctrl+A lalu Ctrl+C, dan tempel.
+2. AI memisahkan setiap lowongan dari teks menu dan iklan, lalu untuk tiap lowongan mengisi: posisi, perusahaan, lokasi, cara melamar, **ukuran perusahaan** (besar, menengah, kecil, tidak dikenal; berdasarkan pengetahuan AI, jadi tetap perkiraan), **tanda bahaya** (biaya rekrutmen, kontak hanya WhatsApp/Gmail, tanpa interview, dll.), skor kecocokan dengan profilmu, dan rekomendasi (layak daftar, coba aja, lewati).
+3. Saring berdasarkan ukuran perusahaan, tanda bahaya, manufaktur, dan skor. Lowongan yang sama tidak masuk dua kali.
+4. **Buat lamaran & CV** mengubah lowongan menjadi lamaran dan langsung menjalankan analisis. Kalau yang tersalin baru kartu ringkasnya, tempel deskripsi lengkapnya dulu di kotak "Lengkapi deskripsi".
+
+Kolom **Fokus pencarian** (misalnya "Software engineer, DevOps, data. Jabodetabek. Fresh grad") dipakai setiap kali menilai.
+
 Fitur lain:
 
 - **Multi-user** dengan login. Akun pertama otomatis jadi admin. Data CV dan lamaran tiap pengguna privat.
@@ -140,7 +151,7 @@ ENABLE_MOCK_LLM=true DATA_DIR=./data-smoke PORT=3999 npm run dev:server
 BASE_URL=http://localhost:3999 npm run smoke
 ```
 
-Smoke test menjalankan seluruh alur lewat API: registrasi, hak akses admin, enkripsi API key, impor profil, analisis, jawaban dan fakta, CV, revisi, edit manual, PDF, isolasi data antar-pengguna, serta fallback dan pesan error saat semua provider gagal.
+Smoke test menjalankan seluruh alur lewat API: registrasi, hak akses admin, enkripsi API key, impor profil, analisis, jawaban dan fakta, CV, revisi, edit manual, PDF, pemilahan lowongan (label perusahaan, tanda bahaya, duplikat, lowongan jadi lamaran), isolasi data antar-pengguna, serta fallback dan pesan error saat semua provider gagal.
 
 `npm run typecheck` memeriksa tipe frontend dan backend.
 
@@ -156,7 +167,7 @@ Workflow GitHub Actions (`.github/workflows/ci.yml`) berjalan di setiap push dan
 
 ```
 client/                 Frontend (Vite + React)
-  src/pages/            Lamaran, detail lamaran, profil, admin
+  src/pages/            Lowongan, lamaran, detail lamaran, profil, admin
   src/components/       Pratinjau CV, komponen UI
 server/
   index.ts              Express app
@@ -165,7 +176,7 @@ server/
   llm/                  Adapter provider + router fallback
   ai/                   Prompt, layanan AI, mock
   pdf/                  Renderer PDF ATS-friendly
-  routes/               Profil, fakta, lamaran, admin
+  routes/               Profil, fakta, lowongan, lamaran, admin
   shared/schemas.ts     Skema Zod yang dipakai server dan client
 scripts/smoke.ts        Tes end-to-end
 ```

@@ -2,6 +2,7 @@ import type { SessionUser } from "../auth.js";
 import { callJson } from "../llm/router.js";
 import {
   AnalysisSchema,
+  LeadsResultSchema,
   ProfileSchema,
   TailorResultSchema,
   type Analysis,
@@ -10,7 +11,7 @@ import {
   type Profile,
   type TailorResult,
 } from "../shared/schemas.js";
-import { analyzePrompt, extractProfilePrompt, revisePrompt, tailorPrompt } from "./prompts.js";
+import { analyzePrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "./prompts.js";
 
 const MAX_SOURCE = 60_000;
 
@@ -62,4 +63,12 @@ export async function reviseCv(
     notesJson: JSON.stringify({ notClaimed: ctx.notes.notClaimed ?? [], interviewPrep: ctx.notes.interviewPrep ?? [] }),
   });
   return callJson(user, { task: "revise", ...p, maxTokens: 16_000, meta: ctx }, TailorResultSchema);
+}
+
+export const MAX_LEADS_SOURCE = 40_000;
+
+export async function extractLeads(user: SessionUser, ctx: { profile: Profile; facts: string[]; preferences: string; sourceText: string }) {
+  const sourceText = ctx.sourceText.slice(0, MAX_LEADS_SOURCE);
+  const p = leadsPrompt({ ...ctx, sourceText, profileJson: compact(ctx.profile) });
+  return callJson(user, { task: "extract_leads", ...p, maxTokens: 16_000, meta: { ...ctx, sourceText } }, LeadsResultSchema);
 }

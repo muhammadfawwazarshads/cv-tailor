@@ -386,3 +386,37 @@ tr:last-child td { border-bottom: none; }
   .paper-scroll { overflow: visible !important; }
   .paper { box-shadow: none !important; border-radius: 0 !important; width: 210mm !important; max-width: none !important; min-width: 0 !important; margin: 0 !important; padding: 12mm 14mm !important; }
 }
+
+/* ---------- Job leads ---------- */
+.filters { display: flex; flex-direction: column; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 14px 16px; margin-bottom: 14px; }
+.filters .search { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: var(--r-field); padding: 0 12px; color: var(--muted); }
+.filters .search input { background: transparent; padding-left: 0; }
+.filters .search input:focus { box-shadow: none; border-color: transparent; background: transparent; }
+.filters .search:focus-within { box-shadow: var(--focus); }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.toggle { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 13px; font-weight: 650; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); border-radius: var(--r-pill); padding: 6px 13px; cursor: pointer; }
+.toggle:hover { border-color: var(--ink-2); }
+.toggle.on { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.leads { display: flex; flex-direction: column; gap: 10px; }
+.lead { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+.lead.dim { opacity: 0.6; }
+.lead.open { border-color: var(--line-strong); }
+.lead-head { display: grid; grid-template-columns: minmax(0, 1fr) 170px 20px; gap: 16px; align-items: center; width: 100%; text-align: left; border: none; background: transparent; font: inherit; color: inherit; padding: 16px 20px; cursor: pointer; }
+.lead-head:hover { background: var(--surface-2); }
+.lead-head .title { font-weight: 700; font-size: 15.5px; }
+.lead-head .company { font-size: 13.5px; margin-top: 1px; }
+.lead-head .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.lead-head .chev { color: var(--muted); transition: transform 0.15s; }
+.lead.open .chev { transform: rotate(180deg); }
+.lead-body { padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+.facts-grid { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 6px 14px; margin: 0; font-size: 13.5px; }
+.facts-grid:empty { display: none; }
+.facts-grid dt { color: var(--muted); font-weight: 600; }
+.facts-grid dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .lead-head { grid-template-columns: minmax(0, 1fr) 20px; padding: 14px 16px; }
+  .lead-head .fitbar { grid-column: 1; grid-row: 2; }
+  .lead-head .chev { grid-column: 2; grid-row: 1; }
+  .lead-body { padding: 14px 16px 16px; }
+  .facts-grid { grid-template-columns: 1fr; }
+}

@@ -108,24 +108,27 @@ const CreateBody = z.object({
   jobDescription: z.string().trim().min(80, "Deskripsi pekerjaan terlalu pendek. Tempel JD lengkapnya.").max(30_000),
 });
 
+/** Saves a new application and runs the first analysis. A failed analysis keeps the application so it can be retried. */
+export async function createApplication(user: SessionUser, input: z.input<typeof CreateBody>) {
+  const body = CreateBody.parse(input);
+  await jobContext(user, { job_description: body.jobDescription } as AppRow); // fail fast on empty profile
+  const app = (await one<AppRow>(
+    `INSERT INTO applications (user_id, company, role_title, job_description, cv_language) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+    [user.id, body.company, body.roleTitle, body.jobDescription, body.cvLanguage],
+  ))!;
+  try {
+    return (await runAnalysis(user, app))!;
+  } catch (e: any) {
+    return { ...app, error: String(e?.message ?? e) };
+  }
+}
+
 applicationsRouter.post(
   "/",
   wrap(async (req, res) => {
-    const body = CreateBody.parse(req.body);
-    await jobContext(req.user!, { job_description: body.jobDescription } as AppRow); // fail fast on empty profile
-    const app = (await one<AppRow>(
-      `INSERT INTO applications (user_id, company, role_title, job_description, cv_language) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [req.user!.id, body.company, body.roleTitle, body.jobDescription, body.cvLanguage],
-    ))!;
-    try {
-      const updated = await runAnalysis(req.user!, app);
-      res.status(201);
-      return { application: updated };
-    } catch (e: any) {
-      // The application is saved; the client can retry the analysis from its page.
-      res.status(201);
-      return { application: { ...app, error: String(e?.message ?? e) } };
-    }
+    const application = await createApplication(req.user!, req.body);
+    res.status(201);
+    return { application };
   }),
 );
 

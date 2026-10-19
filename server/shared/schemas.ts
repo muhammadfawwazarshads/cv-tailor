@@ -141,3 +141,41 @@ export const ApplicationStatuses = [
 export type ApplicationStatus = (typeof ApplicationStatuses)[number];
 
 export type Answer = { questionId: string; question: string; answer: string };
+
+/* ---------- Job leads: jobs found on LinkedIn and elsewhere, before applying ---------- */
+
+export const CompanyTiers = ["large", "mid", "small", "unknown"] as const;
+export const LeadRecommendations = ["apply", "try", "skip"] as const;
+export const LeadStatuses = ["new", "saved", "dismissed", "applied"] as const;
+export type LeadStatus = (typeof LeadStatuses)[number];
+
+const s = (max = 500) => z.string().max(max).catch("").default("");
+const list = z.array(z.string().max(500)).catch([]).default([]);
+
+export const LeadSchema = z.object({
+  title: z.string().min(1).max(300),
+  company: s(300),
+  location: s(300),
+  workMode: s(50) /* onsite | hybrid | remote | "" */,
+  employmentType: s(80),
+  seniority: s(80),
+  postedAt: s(80),
+  applyInfo: s(1000) /* email, link, or instructions such as subject format */,
+  deadline: s(80),
+  jobDescription: s(20_000),
+  hasDetails: z.boolean().catch(false).default(false),
+  category: s(80),
+  manufacturing: z.boolean().catch(false).default(false),
+  companyTier: z.enum(CompanyTiers).catch("unknown").default("unknown"),
+  companyNote: s(600),
+  redFlags: list,
+  fitScore: z.number().min(0).max(100).catch(0).default(0),
+  fitReason: s(1200),
+  matched: list,
+  missing: list,
+  recommendation: z.enum(LeadRecommendations).catch("try").default("try"),
+});
+export type Lead = z.infer<typeof LeadSchema>;
+
+export const LeadsResultSchema = z.object({ jobs: z.array(LeadSchema).max(40).default([]) });
+export type LeadsResult = z.infer<typeof LeadsResultSchema>;

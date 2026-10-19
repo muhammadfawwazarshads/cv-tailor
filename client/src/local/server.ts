@@ -4,19 +4,24 @@
  * and AI providers are called directly from the browser.
  */
 import type { z } from "zod";
-import { analyzePrompt, extractProfilePrompt, revisePrompt, tailorPrompt } from "../../../server/ai/prompts";
+import { analyzePrompt, extractProfilePrompt, leadsPrompt, revisePrompt, tailorPrompt } from "../../../server/ai/prompts";
+import { LEAD_INCOMPLETE, leadJobText, leadKey } from "../../../server/shared/leads";
 import { callProvider, type LlmRequest, type ProviderConfig } from "../../../server/llm/providers";
 import {
   AnalysisSchema,
   ApplicationStatuses,
   CvDocumentSchema,
   emptyProfile,
+  LeadSchema,
+  LeadsResultSchema,
+  LeadStatuses,
   ProfileSchema,
   ProviderTypes,
   TailorResultSchema,
   type Analysis,
   type Answer,
   type CvDocument,
+  type Lead,
   type Profile,
   type TailorResult,
 } from "../../../server/shared/schemas";
@@ -38,6 +43,7 @@ type AppRec = {
   updated_at: string;
 };
 type VersionRec = { id: string; application_id: string; number: number; label: string; data: CvDocument; notes: Partial<TailorResult>; created_at: string };
+type LeadRec = { id: string; data: Lead; title: string; company: string; status: string; application_id: string | null; created_at: string; updated_at: string };
 type FactRec = { id: string; text: string; application_id: string | null; created_at: string };
 type ProviderRec = { id: string; name: string; type: string; model: string; base_url: string; api_version: string; api_key: string; priority: number; enabled: boolean; created_at: string };
 type UsageRec = {
@@ -61,6 +67,7 @@ type Store = {
   versions: VersionRec[];
   providers: ProviderRec[];
   usage: UsageRec[];
+  leads: LeadRec[];
 };
 
 export class LocalError extends Error {
@@ -76,7 +83,7 @@ const now = () => new Date().toISOString();
 const id = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
 function blank(): Store {
-  return { profile: null, profileUpdatedAt: null, facts: [], applications: [], versions: [], providers: [], usage: [] };
+  return { profile: null, profileUpdatedAt: null, facts: [], applications: [], versions: [], providers: [], usage: [], leads: [] };
 }
 
 function load(): Store {
@@ -257,6 +264,33 @@ function addVersion(appId: string, label: string, r: TailorResult) {
   return v;
 }
 
+async function createApp(body: any) {
+  const s = load();
+  const jd = String(body?.jobDescription ?? "").trim();
+  if (jd.length < 80) throw new LocalError(400, "Deskripsi pekerjaan terlalu pendek. Tempel JD lengkapnya.");
+  const app: AppRec = {
+    id: id(),
+    company: String(body?.company ?? "").trim(),
+    role_title: String(body?.roleTitle ?? "").trim(),
+    job_description: jd,
+    cv_language: String(body?.cvLanguage ?? "English"),
+    status: "analyzing",
+    analysis: null,
+    answers: [],
+    error: null,
+    created_at: now(),
+    updated_at: now(),
+  };
+  jobCtx(s, app);
+  s.applications.push(app);
+  save(s);
+  try {
+    return await runAnalysis(app.id);
+  } catch (e: any) {
+    return { ...findApp(load(), app.id), error: String(e?.message ?? e) };
+  }
+}
+
 /* ---------------- Router ---------------- */
 
 const LOCAL_USER = { id: "local", email: "browser ini", name: "Kamu", role: "admin" as const };
@@ -364,31 +398,7 @@ export async function localApi(method: string, rawUrl: string, body?: any): Prom
         })),
     };
   }
-  if (route === "POST /applications") {
-    const jd = String(body?.jobDescription ?? "").trim();
-    if (jd.length < 80) throw new LocalError(400, "Deskripsi pekerjaan terlalu pendek. Tempel JD lengkapnya.");
-    const app: AppRec = {
-      id: id(),
-      company: String(body?.company ?? "").trim(),
-      role_title: String(body?.roleTitle ?? "").trim(),
-      job_description: jd,
-      cv_language: String(body?.cvLanguage ?? "English"),
-      status: "analyzing",
-      analysis: null,
-      answers: [],
-      error: null,
-      created_at: now(),
-      updated_at: now(),
-    };
-    jobCtx(s, app);
-    s.applications.push(app);
-    save(s);
-    try {
-      return { application: await runAnalysis(app.id) };
-    } catch (e: any) {
-      return { application: { ...findApp(load(), app.id), error: String(e?.message ?? e) } };
-    }
-  }
+  if (route === "POST /applications") return { application: await createApp(body) };
   if ((r = m(/^GET \/applications\/([^/]+)$/))) {
     const app = findApp(s, r[1]);
     return { application: app, versions: s.versions.filter((v) => v.application_id === app.id).sort((a, b) => b.number - a.number) };
@@ -463,6 +473,72 @@ export async function localApi(method: string, rawUrl: string, body?: any): Prom
     return {
       version: addVersion(app.id, `Edit manual dari versi ${v.number}`, { cv, changes: ["Diedit manual."], notClaimed: v.notes.notClaimed ?? [], interviewPrep: v.notes.interviewPrep ?? [] }),
     };
+  }
+
+  /* job leads */
+  if (route === "GET /leads") return { leads: [...s.leads].sort((a, b) => b.created_at.localeCompare(a.created_at)) };
+  if (route === "POST /leads/extract") {
+    const text = String(body?.text ?? "").trim();
+    if (text.length < 40) throw new LocalError(400, "Teksnya terlalu pendek. Salin seluruh halaman lowongan (Ctrl+A, Ctrl+C).");
+    const profile = s.profile ? ProfileSchema.parse(s.profile) : emptyProfile();
+    if (!profile.name && !profile.experience.length && !profile.summary) throw new LocalError(400, "Profil CV kamu masih kosong. Isi atau impor CV di menu Profil dulu.");
+    const sourceText = text.slice(0, 40_000);
+    const ctx = { profile, facts: s.facts.map((f) => f.text), preferences: String(body?.preferences ?? "").slice(0, 1000), sourceText };
+    const p = leadsPrompt({ ...ctx, profileJson: compact(profile) });
+    const res = await callJson({ task: "extract_leads", ...p, maxTokens: 16_000, meta: ctx }, LeadsResultSchema);
+    s = load();
+    const byKey = new Map(s.leads.map((l) => [leadKey(l.title, l.company), l]));
+    const saved: LeadRec[] = [];
+    let skipped = 0;
+    for (const job of res.data.jobs) {
+      const key = leadKey(job.title, job.company);
+      const dup = byKey.get(key);
+      if (dup) {
+        if (job.hasDetails && !dup.data.hasDetails) {
+          dup.data = job;
+          dup.updated_at = now();
+          saved.push(dup);
+        } else skipped++;
+        continue;
+      }
+      const rec: LeadRec = { id: id(), data: job, title: job.title, company: job.company, status: "new", application_id: null, created_at: now(), updated_at: now() };
+      s.leads.push(rec);
+      byKey.set(key, rec);
+      saved.push(rec);
+    }
+    save(s);
+    return { leads: saved, found: res.data.jobs.length, skipped, provider: res.provider };
+  }
+  if ((r = m(/^PATCH \/leads\/([^/]+)$/))) {
+    const lead = s.leads.find((l) => l.id === r![1]);
+    if (!lead) throw new LocalError(404, "Lowongan tidak ditemukan.");
+    if (body?.status && (LeadStatuses as readonly string[]).includes(body.status)) lead.status = body.status;
+    if (typeof body?.jobDescription === "string") {
+      lead.data = LeadSchema.parse({ ...lead.data, jobDescription: body.jobDescription, hasDetails: body.jobDescription.trim().length > 200 || lead.data.hasDetails });
+    }
+    lead.updated_at = now();
+    save(s);
+    return { lead };
+  }
+  if ((r = m(/^DELETE \/leads\/([^/]+)$/))) {
+    s.leads = s.leads.filter((l) => l.id !== r![1]);
+    save(s);
+    return { ok: true };
+  }
+  if ((r = m(/^POST \/leads\/([^/]+)\/apply$/))) {
+    const lead = s.leads.find((l) => l.id === r![1]);
+    if (!lead) throw new LocalError(404, "Lowongan tidak ditemukan.");
+    const existing = lead.application_id && s.applications.find((a) => a.id === lead.application_id);
+    if (existing) return { application: existing, existing: true };
+    if (lead.data.jobDescription.trim().length < 80) throw new LocalError(400, LEAD_INCOMPLETE);
+    const application = await createApp({ company: lead.data.company, roleTitle: lead.data.title, cvLanguage: body?.cvLanguage ?? "English", jobDescription: leadJobText(lead.data) });
+    const s2 = load();
+    const l2 = s2.leads.find((l) => l.id === lead.id)!;
+    l2.status = "applied";
+    l2.application_id = application.id;
+    l2.updated_at = now();
+    save(s2);
+    return { application };
   }
 
   /* admin: providers and usage */

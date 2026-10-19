@@ -158,3 +158,60 @@ Return JSON with exactly this shape:
 }`,
   };
 }
+
+export function leadsPrompt(ctx: { profileJson: string; facts: string[]; preferences: string; sourceText: string }) {
+  return {
+    system: `You are a job-search assistant for one candidate. The candidate pastes raw text copied from a job site or social media page (often LinkedIn, copied with Ctrl+A), which is full of navigation, ads, and other noise. You find every real job opening in it, assess each one for the candidate, and judge whether the employer is a substantial company.
+
+Rules:
+- Only use information in the pasted text, plus your general knowledge about well-known companies. Never invent job details, salaries, contacts, or deadlines.
+- Company size: "large" = multinational, listed, or a well-known group/brand with hundreds+ employees; "mid" = established company but not widely known; "small" = clearly a small business, startup without notable backing, or individual recruiter; "unknown" = you do not recognize it and the text gives no evidence. Do NOT guess "large" for names you do not recognize. Say in companyNote what you know and how sure you are.
+- Red flags: recruitment fees, contact only via personal WhatsApp/Gmail with no company identity, vague company name, unrealistic pay, "no interview", requests for sensitive documents up front, job-board spam, mismatch between title and duties. Empty list if none.
+- Fit: compare against the MASTER PROFILE and CONFIRMED FACTS. Be realistic: required qualifications weigh most; years of experience matter. If the text only has a short job card without requirements, set hasDetails=false and base fitScore mainly on the title (keep it moderate).
+- recommendation: "apply" (good fit and credible employer), "try" (worth a shot), "skip" (poor fit, not a target role, or red flags).
+- Write human-readable fields (companyNote, redFlags, fitReason, matched, missing) in ${NOTES_LANGUAGE}, short.
+- Reply with ONLY one JSON object.`,
+    user: `CANDIDATE PREFERENCES:
+${ctx.preferences || "(none given: target roles that match the profile)"}
+
+MASTER PROFILE (JSON):
+${ctx.profileJson}
+
+CONFIRMED FACTS:
+${ctx.facts.length ? ctx.facts.map((f) => `- ${f}`).join("\n") : "(none)"}
+
+PASTED TEXT:
+"""
+${ctx.sourceText}
+"""
+
+Return JSON with exactly this shape (one entry per distinct job; at most 25; skip duplicates):
+{
+  "jobs": [
+    {
+      "title": string,
+      "company": string /* employer, not the job board; for agency posts write the agency and mention the client in companyNote */,
+      "location": string,
+      "workMode": "onsite" | "hybrid" | "remote" | "",
+      "employmentType": string /* e.g. Full-time, Contract, Internship */,
+      "seniority": string /* e.g. Entry level, 2-5 years */,
+      "postedAt": string /* as written, e.g. "2 days ago" */,
+      "applyInfo": string /* how to apply: email address, subject format, link, or "Easy Apply" */,
+      "deadline": string,
+      "jobDescription": string /* the full job text for this job, cleaned of page noise: about, responsibilities, requirements. Empty if only a card is visible */,
+      "hasDetails": boolean,
+      "category": string /* short role family, e.g. "Backend", "DevOps/Cloud", "Data", "AI/ML", "Frontend", "Power Platform", "IT/MES Manufaktur", "Non-IT" */,
+      "manufacturing": boolean /* employer or role is in manufacturing / industrial digitalization */,
+      "companyTier": "large" | "mid" | "small" | "unknown",
+      "companyNote": string,
+      "redFlags": string[],
+      "fitScore": number /* 0-100 */,
+      "fitReason": string /* 1-2 sentences */,
+      "matched": string[] /* candidate strengths that match, max 5 */,
+      "missing": string[] /* key requirements the candidate lacks, max 5 */,
+      "recommendation": "apply" | "try" | "skip"
+    }
+  ]
+}`,
+  };
+}

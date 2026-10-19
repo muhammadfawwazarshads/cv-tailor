@@ -126,6 +126,41 @@ fs.writeFileSync(path.join(outDir, "smoke.pdf"), pdf.buf);
 const st = await user("PATCH", `/api/applications/${app.id}`, { status: "applied" });
 check(st.application.status === "applied", "update status");
 
+// Job leads: paste a noisy page with several jobs
+const page = `LinkedIn  Home  My Network  Jobs  Messaging
+Search results
+DevOps Engineer
+Schneider Electric
+Cikarang, West Java (Hybrid)
+About the job: we digitalize our manufacturing plants. Requirements: Linux, Docker, AWS, Python, CI/CD with GitHub Actions.
+Responsibilities: deploy services, automate builds, monitor production.
+Apply by email to careers@example.com
+Data Entry Staff
+Maju Jaya Abadi
+Bekasi
+Kirim CV via WhatsApp 0812xxxx, ada biaya pelatihan Rp500.000. Lowongan cepat tanpa interview.
+Syarat: bisa Excel, teliti, jujur.
+Backend Developer
+Toyota
+Promoted`;
+const ex = await user("POST", "/api/leads/extract", { text: page, preferences: "Software, DevOps" });
+check(ex.status === 201 && ex.leads.length === 3, `extract leads from pasted page (${ex.leads?.length})`);
+const devops = ex.leads.find((l: any) => l.title === "DevOps Engineer");
+const spam = ex.leads.find((l: any) => l.title === "Data Entry Staff");
+check(devops?.data.companyTier === "large" && devops.data.manufacturing, "big manufacturing company labelled");
+check(spam?.data.redFlags.length > 0 && spam.data.recommendation === "skip", "red flags detected");
+const again = await user("POST", "/api/leads/extract", { text: page });
+check(again.status === 201 && again.leads.length === 0 && again.skipped === 3, "re-pasting skips duplicates");
+const card = ex.leads.find((l: any) => l.title === "Backend Developer");
+check((await user("POST", `/api/leads/${card.id}/apply`)).status === 400, "card without description cannot become an application");
+const dismissed = await user("PATCH", `/api/leads/${spam.id}`, { status: "dismissed" });
+check(dismissed.lead.status === "dismissed", "dismiss lead");
+const fromLead = await user("POST", `/api/leads/${devops.id}/apply`, { cvLanguage: "English" });
+check(fromLead.status === 201 && fromLead.application.role_title === "DevOps Engineer" && fromLead.application.analysis, "lead becomes an analysed application");
+const leadsNow = await user("GET", "/api/leads");
+check(leadsNow.leads.find((l: any) => l.id === devops.id).status === "applied", "lead marked as applied");
+check((await admin("GET", "/api/leads")).leads.length === 0, "leads are private per user");
+
 // Isolation between users
 check((await admin("GET", `/api/applications/${app.id}`)).status === 404, "other users cannot read the application");
 check((await admin("GET", `/api/applications/not-a-uuid`)).status === 404, "malformed id returns 404");

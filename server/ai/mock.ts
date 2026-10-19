@@ -2,7 +2,7 @@
  * Deterministic stand-in for an LLM, enabled with ENABLE_MOCK_LLM=true.
  * Useful for local development, demos, and automated tests without API keys.
  */
-import type { Analysis, Answer, CvDocument, Profile, TailorResult } from "../shared/schemas.js";
+import type { Analysis, Answer, CvDocument, Lead, LeadsResult, Profile, TailorResult } from "../shared/schemas.js";
 import { emptyProfile } from "../shared/schemas.js";
 import { profileToCv, profileToText } from "./convert.js";
 
@@ -102,6 +102,55 @@ function extract(meta: { sourceText: string }): Profile {
   return p;
 }
 
+const BIG = ["schneider", "toyota", "astra", "shopee", "sea", "google", "microsoft", "samsung", "unilever", "epson", "honda", "telkom", "bank", "ntt", "accenture", "ey", "stmicroelectronics", "tiket.com", "gojek", "tokopedia", "grab"];
+const TITLE = /\b(engineer|developer|analyst|staff|specialist|consultant|architect|intern|programmer|administrator|scientist)\b/i;
+
+function leads(meta: { profile: Profile; sourceText: string }): LeadsResult {
+  const lines = meta.sourceText.split(/\r?\n/).map((l) => l.trim());
+  const starts = lines.map((l, i) => (l.length < 80 && TITLE.test(l) ? i : -1)).filter((i) => i >= 0);
+  const profileText = profileToText(meta.profile);
+  const jobs: Lead[] = starts.slice(0, 25).map((start, n) => {
+    const end = starts[n + 1] ?? lines.length;
+    const body = lines.slice(start + 1, end).filter(Boolean);
+    const company = body[0] ?? "";
+    const text = body.join("\n");
+    const wanted = TERMS.filter((t) => has(text, t));
+    const matched = wanted.filter((t) => has(profileText, t));
+    const fitScore = wanted.length ? Math.round((matched.length / wanted.length) * 100) : 50;
+    const redFlags = [
+      /biaya|fee|deposit/i.test(text) && "Ada permintaan biaya",
+      /whatsapp|wa\.me|@gmail\.com/i.test(text) && "Kontak pribadi (WA/Gmail)",
+    ].filter(Boolean) as string[];
+    const big = BIG.some((b) => norm(company).split(" ").includes(b));
+    return {
+      title: lines[start],
+      company,
+      location: body[1] ?? "",
+      workMode: /remote/i.test(text) ? "remote" : /hybrid/i.test(text) ? "hybrid" : "",
+      employmentType: "",
+      seniority: "",
+      postedAt: "",
+      applyInfo: text.match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0] ?? "",
+      deadline: "",
+      jobDescription: body.length > 3 ? text : "",
+      hasDetails: body.length > 3,
+      category: /devops|cloud|sre/i.test(lines[start]) ? "DevOps/Cloud" : /data/i.test(lines[start]) ? "Data" : "Software",
+      manufacturing: /manufactur|pabrik|factory|mes\b/i.test(text),
+      companyTier: big ? "large" : "unknown",
+      companyNote: big ? "(Mode demo) Nama perusahaan dikenal." : "(Mode demo) Perusahaan tidak dikenali.",
+      redFlags,
+      fitScore,
+      fitReason: `(Mode demo) ${matched.length} dari ${wanted.length} kata kunci teknis cocok.`,
+      matched: matched.slice(0, 5),
+      missing: wanted.filter((t) => !matched.includes(t)).slice(0, 5),
+      recommendation: redFlags.length ? "skip" : fitScore >= 60 ? "apply" : "try",
+    };
+  });
+  return { jobs };
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9.]+/g, " ").trim();
+
 export function mockResponse(task: string, meta: any): unknown {
   switch (task) {
     case "extract_profile":
@@ -112,6 +161,8 @@ export function mockResponse(task: string, meta: any): unknown {
       return tailor(meta);
     case "revise":
       return revise(meta);
+    case "extract_leads":
+      return leads(meta);
     default:
       return { ok: true };
   }
