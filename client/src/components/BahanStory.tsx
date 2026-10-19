@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api, type Profile } from "../api";
 import { Mascot, type MascotPose } from "./Mascot";
+import { OUTFIT, Wardrobe, wearFromProfile, wearLabel } from "./Outfit";
 
 /**
  * "Sesi fitting": Benang fills the CV material by chatting, one question at a time, and nudges for
@@ -158,6 +159,13 @@ export function BahanStory({
   }
 
   async function commit(next: Profile) {
+    // dress-up: a new piece of the outfit is worth a small celebration in the chat
+    const before = wearFromProfile(latest.current);
+    const gained = wearFromProfile(next).filter((w) => !before.includes(w));
+    if (gained.length) {
+      push("benang", `Yay, aku dapat ${gained.map(wearLabel).join(" dan ")}! Makin rapi nih.`);
+      setMood("cheer");
+    }
     latest.current = next;
     setP(next);
     try {
@@ -320,10 +328,17 @@ export function BahanStory({
     return say(finale(), "done", "cheer");
   }
 
-  const finale = () => [
-    `Bahanmu sudah cukup buat dijahit, ${firstName(p.name)}!`,
-    "Tiap kali ada lowongan, aku pilih bagian yang paling pas dari sini. Nggak ada yang ditambah-tambah.",
-  ];
+  const finale = () => {
+    const worn = wearFromProfile(latest.current);
+    const missing = OUTFIT.find((o) => !worn.includes(o.key));
+    return [
+      `Bahanmu sudah cukup buat dijahit, ${firstName(latest.current.name)}!`,
+      "Tiap kali ada lowongan, aku pilih bagian yang paling pas dari sini. Nggak ada yang ditambah-tambah.",
+      missing
+        ? `Aku sudah pakai ${worn.length} dari 5 setelan. ${missing.hint} kalau mau aku pakai ${missing.label.toLowerCase()} juga.`
+        : "Setelanku lengkap. Siap melamar!",
+    ];
+  };
 
   const chapter = chapterOf(step);
 
@@ -355,7 +370,7 @@ export function BahanStory({
 
         <div className="story-input">
           <div className="story-avatar">
-            <Mascot size={64} pose={mood} />
+            <Mascot size={64} pose={mood} wear={wearFromProfile(p)} />
           </div>
           <div className="story-reply">
             {error && <div className="story-error">{error}</div>}
@@ -620,6 +635,13 @@ function StorySheet({ profile: p, chapter }: { profile: Profile; chapter: number
   const skills = allSkills(p);
   return (
     <aside className="story-sheet" aria-label="CV yang sedang dijahit">
+      <div className="story-wardrobe">
+        <Mascot size={110} pose={wearFromProfile(p).length === 5 ? "wave" : "idle"} wear={wearFromProfile(p)} />
+        <div>
+          <b>Setelan Benang {wearFromProfile(p).length}/5</b>
+          <Wardrobe wear={wearFromProfile(p)} compact />
+        </div>
+      </div>
       <div className="story-paper">
         {/* the seam runs clockwise around the sheet, one stretch per finished chapter */}
         {["top", "right", "bottom", "left"].map((side, k) => {

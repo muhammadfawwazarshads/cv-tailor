@@ -1,11 +1,15 @@
 import { useId } from "react";
 
 /**
- * "Benang", the Jahit mascot: a wide purple furball dressed for a job hunt (graduation cap,
- * collar and tie, a CV in hand), with one expression per pose. Arms grow from behind the body so no
+ * "Benang", the Jahit mascot: a wide purple furball that dresses for the job hunt as the user's
+ * material grows (name tag, tie, glasses, graduation cap, a CV in hand), with one expression per pose. Arms grow from behind the body so no
  * joint ever shows; "shy" brings both paws up over the eyes (used while a password is typed).
  * Pose and gaze changes animate via CSS transitions.
  */
+/** Pieces Benang can wear; Bahan CV unlocks them one by one (see Outfit.tsx). */
+export type Wear = "badge" | "tie" | "glasses" | "cap" | "cv";
+const DEFAULT_WEAR: Wear[] = ["tie", "cap", "cv"];
+
 export type MascotPose = "idle" | "wave" | "cheer" | "point-left" | "point-right" | "point-up" | "point-down" | "shy" | "sad";
 type Mood = "smile" | "happy" | "joy" | "curious" | "shy" | "sad";
 
@@ -251,14 +255,18 @@ export function Mascot({
   size = 160,
   pose = "idle",
   look,
+  wear = DEFAULT_WEAR,
   className,
 }: {
   size?: number;
   pose?: MascotPose;
   /** Override the gaze, each axis from -1 to 1 (e.g. follow a caret). */
   look?: [number, number];
+  /** What Benang has on; pieces animate in and out when this changes. */
+  wear?: Wear[];
   className?: string;
 }) {
+  const on = (w: Wear) => (wear.includes(w) ? "wear on" : "wear");
   const uid = useId().replace(/:/g, "");
   const u = (n: string) => `${n}-${uid}`;
   const [la, ra] = ARMS[pose];
@@ -343,7 +351,7 @@ export function Mascot({
       <g className="mascot-bob">
         <g className="mascot-breathe">
           {/* arms sit behind the body, so only the paws and forearms show */}
-          <Arm x={50} angle={la} wave={false} hidden={shy} holding={la <= 30 && !shy} u={u} />
+          <Arm x={50} angle={la} wave={false} hidden={shy} holding={la <= 30 && !shy && wear.includes("cv")} u={u} />
           <Arm x={190} angle={ra} wave={pose === "wave"} hidden={shy} holding={false} u={u} />
 
           {/* pink horns */}
@@ -386,8 +394,19 @@ export function Mascot({
           <path d={STRANDS} stroke="#f0d4ff" strokeOpacity="0.22" strokeWidth="1.4" strokeLinecap="round" fill="none" />
           <ellipse cx="92" cy="96" rx="52" ry="20" fill="#fff" opacity="0.12" />
 
+          {/* name tag pinned on the chest */}
+          <g className={on("badge")}>
+            <g transform="rotate(-8 62 194)">
+              <rect x="44" y="181" width="36" height="26" rx="4" fill="#fbfaff" />
+              <rect x="44" y="181" width="36" height="7" rx="3" fill="#a35fec" />
+              <rect x="49" y="193" width="20" height="3" rx="1.5" fill="#3b3650" />
+              <rect x="49" y="199" width="26" height="2.5" rx="1.25" fill="#c9c2e8" />
+              <circle cx="62" cy="179" r="2.4" fill="#f3c372" />
+            </g>
+          </g>
+
           {/* collar and tie: dressed for the interview */}
-          <g>
+          <g className={on("tie")}>
             <path d="M96 200 L120 210 L108 222 Z" fill="#fbfaff" />
             <path d="M144 200 L120 210 L132 222 Z" fill="#fbfaff" />
             <path d="M114 208 L126 208 L124 216 L116 216 Z" fill="#2f55d4" />
@@ -401,12 +420,21 @@ export function Mascot({
             <Brows mood={mood} />
             <Eye cx={88} cy={104} gx={gx} gy={gy} mood={mood} u={u} />
             <Eye cx={152} cy={104} gx={gx} gy={gy} mood={mood} u={u} />
+            {/* round glasses */}
+            <g className={on("glasses")}>
+              {[88, 152].map((cx) => (
+                <circle key={cx} cx={cx} cy={104} r="29" fill="rgba(210, 230, 255, 0.08)" stroke="#2b2140" strokeWidth="4.5" />
+              ))}
+              <path d="M117 100 Q120 95 123 100" stroke="#2b2140" strokeWidth="4" fill="none" strokeLinecap="round" />
+              <path d="M59 98 L44 90 M181 98 L196 90" stroke="#2b2140" strokeWidth="4" strokeLinecap="round" />
+              <path d="M70 86 q8 -6 16 -4" stroke="#fff" strokeOpacity="0.5" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            </g>
             <Mouth mood={mood} u={u} />
             <CoverPaws show={shy} u={u} />
           </g>
 
           {/* graduation cap with a swinging tassel */}
-          <g className="mascot-cap">
+          <g className={`mascot-cap ${on("cap")}`}>
             <path d="M90 58 L150 58 L150 76 Q120 90 90 76 Z" fill={`url(#${u("cap")})`} />
             <path d="M62 56 L120 34 L178 56 L120 78 Z" fill={`url(#${u("cap")})`} />
             <path d="M62 56 L120 34 L178 56" stroke="#5b5694" strokeWidth="1.5" fill="none" strokeLinejoin="round" />

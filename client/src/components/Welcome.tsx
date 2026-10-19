@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type ApplicationSummary, type Profile } from "../api";
 import { APP_NAME } from "../brand";
-import { Mascot, type MascotPose } from "./Mascot";
+import { Mascot, type MascotPose, type Wear } from "./Mascot";
+import { wearFromProfile } from "./Outfit";
 
 /**
  * Hello right after signing in, told through the name: a needle pulls Benang's thread around a CV
@@ -20,7 +21,9 @@ type Next = { say: string; label: string; to: string };
 function nextStep(p: Profile, apps: ApplicationSummary[]): Next {
   const sent = apps.filter((a) => ["applied", "interview", "offer", "rejected"].includes(a.status)).length;
   const waiting = apps.filter((a) => a.fit_score != null && a.versions === 0).length;
-  if (!p.name || !p.experience.length) return { say: "Bahan CV-mu masih tipis. Ceritain dulu ke aku, biar ada yang bisa dijahit.", label: "Cerita ke Benang", to: "/profile" };
+  const worn = wearFromProfile(p).length;
+  if (!p.name || !p.experience.length)
+    return { say: `Bahan CV-mu masih tipis, aku baru pakai ${worn} dari 5 setelan. Ceritain dulu ke aku, biar ada yang bisa dijahit (dan aku makin rapi).`, label: "Cerita ke Benang", to: "/profile" };
   if (!apps.length) return { say: "Bahanmu sudah siap. Tinggal ukur lowongan pertama.", label: "Ukur lowongan", to: "/leads" };
   if (waiting) return { say: `${waiting} lamaran sudah diukur tapi belum dijahit. Lanjut dari situ?`, label: "Lanjut menjahit", to: "/applications" };
   return { say: `${sent} lamaran sudah dikirim. Ada lowongan baru buat diukur hari ini?`, label: "Ukur lowongan baru", to: "/leads" };
@@ -29,6 +32,8 @@ function nextStep(p: Profile, apps: ApplicationSummary[]): Next {
 export function Welcome({ name, onDone }: { name: string; onDone: () => void }) {
   const [phase, setPhase] = useState<"sew" | "done" | "leave">("sew");
   const [next, setNext] = useState<Next | null>(null);
+  // starts undressed; the pieces the user has earned pop on once the profile loads
+  const [wear, setWear] = useState<Wear[]>([]);
   const [goTo, setGoTo] = useState<string | null>(null);
   const navigate = useNavigate();
   const full = (name || "").trim();
@@ -36,7 +41,10 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
 
   useEffect(() => {
     Promise.all([api<{ profile: Profile }>("GET", "/api/profile"), api<{ applications: ApplicationSummary[] }>("GET", "/api/applications")])
-      .then(([p, a]) => setNext(nextStep(p.profile, a.applications)))
+      .then(([p, a]) => {
+        setWear(wearFromProfile(p.profile));
+        setNext(nextStep(p.profile, a.applications));
+      })
       .catch(() => setNext({ say: "Kita mulai dari mana hari ini?", label: "Ukur lowongan", to: "/leads" }));
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const t = setTimeout(() => setPhase("done"), reduced ? 0 : (SEW_START + SEW_DUR) * 1000);
@@ -114,7 +122,7 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
             </g>
           </svg>
           <div className="welcome-mascot">
-            <Mascot size={140} pose={pose} />
+            <Mascot size={140} pose={pose} wear={wear} />
           </div>
         </div>
         <h1>{first ? `Halo, ${first}.` : "Halo."}</h1>

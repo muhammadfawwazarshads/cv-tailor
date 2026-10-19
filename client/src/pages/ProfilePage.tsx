@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, formatDate, STANDALONE, type Fact, type Profile } from "../api";
 import { BahanStory } from "../components/BahanStory";
 import { BenangSays } from "../components/BenangSays";
+import { Wardrobe, wearFromProfile } from "../components/Outfit";
 import { Busy, ErrorBox, Field, Loading, Spinner, useAction } from "../components/ui";
 
 type Exp = Profile["experience"][number];
@@ -471,6 +472,7 @@ function BahanStock({ profile, onStory }: { profile: Profile; onStory: () => voi
   const checks = bahanChecks(profile);
   const score = Math.round((checks.filter((c) => c.ok).length / checks.length) * 100);
   const next = checks.find((c) => !c.ok);
+  const wear = wearFromProfile(profile);
   const skillCount = profile.skills.reduce((n, g) => n + g.items.split(",").filter((x) => x.trim()).length, 0);
   const bullets = profile.experience.reduce((n, e) => n + e.bullets.length, 0);
   const parts = [
@@ -484,7 +486,8 @@ function BahanStock({ profile, onStory }: { profile: Profile; onStory: () => voi
   return (
     <section className="bahan">
       <BenangSays
-        pose={next ? "point-right" : "cheer"}
+        pose={next ? "point-right" : "wave"}
+        wear={wear}
         actions={
           next && (
             <>
@@ -507,6 +510,12 @@ function BahanStock({ profile, onStory }: { profile: Profile; onStory: () => voi
           <i style={{ width: `${score}%` }} />
         </div>
         <b>{score}%</b>
+      </div>
+      <div className="bahan-outfit">
+        <span>
+          Setelan Benang <b>{wear.length}/5</b>
+        </span>
+        <Wardrobe wear={wear} />
       </div>
       <ul className="bahan-parts">
         {parts.map((p) => (
