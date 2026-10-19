@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Brand, useAuth } from "../App";
 import { api, type User } from "../api";
 import { ErrorBox, Field, Spinner, useAction } from "../components/ui";
+import { Mascot } from "../components/Mascot";
 
 export function AuthPage() {
   const { setUser } = useAuth();
@@ -31,6 +32,7 @@ export function AuthPage() {
       <section className="auth-story">
         <Brand />
         <div>
+          <Mascot size={132} className="auth-mascot" />
           <h1>Satu CV untuk setiap lowongan</h1>
           <p>Tempel deskripsi pekerjaan. CV Tailor menilai kecocokanmu, menanyakan hal yang belum jelas, lalu menulis ulang CV dari pengalamanmu sendiri.</p>
         </div>
