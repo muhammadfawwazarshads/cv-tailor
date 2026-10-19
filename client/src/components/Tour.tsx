@@ -60,10 +60,9 @@ const STEPS: Step[] = [
   {
     route: "/applications",
     target: '[data-tour="stats"]',
-    chapter: 2,
-    title: "Pantau semua lamaran",
+    title: "Semua lamaranmu di satu tempat",
     demo: DemoStats,
-    body: "Angka besar adalah rata-rata kecocokan. Di bawahnya: berapa lowongan yang sudah diukur, dijahit jadi CV, dikirim, dan sampai interview. Lowongan dari luar LinkedIn bisa diukur lewat tombol putih.",
+    body: "Persen besar di atas halaman Lamaran adalah rata-rata seberapa cocok kamu dengan lowongan yang sudah diukur. Makin tinggi, makin pas. Di bawahnya ada hitungan tiap tahap: diukur, dijahit, dikirim, sampai interview. Lowongan dari luar LinkedIn bisa diukur lewat tombol Ukur lowongan baru.",
     place: "bottom",
   },
   {
@@ -281,12 +280,10 @@ export function Tour({ onClose }: { onClose: () => void }) {
           )}
           <div>
             <div className="tour-step">
-              {step.chapter != null && (
-                <span className="tour-chapter">
-                  Langkah {step.chapter + 1} · {CHAPTERS[step.chapter]}
-                </span>
-              )}
-              {i + 1} dari {STEPS.length}
+              <span className="tour-chapter">{step.chapter != null ? `Langkah ${step.chapter + 1} · ${CHAPTERS[step.chapter]}` : ""}</span>{" "}
+              <span className="tour-count">
+                {i + 1}/{STEPS.length}
+              </span>
             </div>
             <h2>{step.title}</h2>
             <p>{step.body}</p>

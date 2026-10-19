@@ -246,7 +246,11 @@ export function DemoStats() {
     { label: "Interview", v: 2, unit: "" },
   ];
   return (
-    <Win title="Lamaran" h={150}>
+    <Win title="Lamaran" h={222}>
+      <div className="td-avg">
+        <b>{Math.round(81 * prog(t, 0, 1200))}%</b>
+        <span>rata-rata cocok dengan 9 lowongan yang sudah diukur</span>
+      </div>
       <div className="td-stats">
         {stats.map((s, k) => (
           <div key={s.label} className="td-stat" style={{ opacity: prog(t, k * 180, 300) }}>

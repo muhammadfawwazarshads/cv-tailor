@@ -44,7 +44,7 @@ export function ApplicationsPage() {
         </div>
       )}
       {composing && (
-        <Modal title="Nilai lowongan baru" onClose={() => setComposing(false)}>
+        <Modal title="Ukur lowongan baru" onClose={() => setComposing(false)}>
           <NewApplication />
         </Modal>
       )}
@@ -184,7 +184,7 @@ function Stats({ apps, onNew }: { apps: ApplicationSummary[]; onNew: () => void 
         </div>
       </div>
       <button className="btn primary wide" onClick={onNew}>
-        <Plus size={16} /> Nilai lowongan baru
+        <Plus size={16} /> Ukur lowongan baru
       </button>
     </section>
   );
