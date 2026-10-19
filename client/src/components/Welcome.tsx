@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type ApplicationSummary, type Profile } from "../api";
 import { APP_NAME } from "../brand";
@@ -9,10 +9,12 @@ import { wearFromProfile } from "./Outfit";
  * Hello right after signing in, told as a three-beat scene on the user's own CV sheet: Benang measures
  * it with a tape, sews it with a needle, and tags it "pas", narrating in a speech bubble. The last beat
  * picks the story up where the user left it (thin material, applications measured but not sewn, ...).
+ * Each beat gets room to land, Benang types before every line, and a click jumps to the last beat.
  */
-type Phase = "measure" | "sew" | "done" | "leave";
-const SEW_START = 1.5; // s, when the needle starts
-const SEW_DUR = 1.8; // s
+type Phase = "measure" | "sew" | "pas" | "next" | "leave";
+const SEW_START = 2.6; // s, when the needle starts (the tape runs before it)
+const SEW_DUR = 2.4; // s
+const PAS_HOLD = 1.6; // s, the "pas" moment before Benang suggests what's next
 // Running stitch just inside the sheet's edge (sheet is 230 x 290), clockwise from the top-left corner.
 const STITCH = "M19 10 H211 Q220 10 220 19 V271 Q220 280 211 280 H19 Q10 280 10 271 V19 Q10 10 19 10";
 
@@ -48,6 +50,8 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
   // starts undressed; the pieces the user has earned pop on once the profile loads
   const [wear, setWear] = useState<Wear[]>([]);
   const [goTo, setGoTo] = useState<string | null>(null);
+  const sheet = useRef<SVGSVGElement>(null);
+  const timers = useRef<number[]>([]);
   const navigate = useNavigate();
   const first = (name || "").trim().split(/\s+/)[0];
 
@@ -59,16 +63,27 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
       })
       .catch(() => setStory({ profile: null, next: { say: "Kita mulai dari mana hari ini?", label: "Ukur lowongan", to: "/leads" } }));
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const timers = reduced
-      ? [setTimeout(() => setPhase("done"), 0)]
-      : [setTimeout(() => setPhase("sew"), SEW_START * 1000), setTimeout(() => setPhase("done"), (SEW_START + SEW_DUR) * 1000)];
+    if (reduced) skip();
+    else
+      timers.current = [
+        window.setTimeout(() => setPhase("sew"), SEW_START * 1000),
+        window.setTimeout(() => setPhase("pas"), (SEW_START + SEW_DUR) * 1000),
+        window.setTimeout(() => setPhase("next"), (SEW_START + SEW_DUR + PAS_HOLD) * 1000),
+      ];
     const esc = (e: KeyboardEvent) => e.key === "Escape" && leave(null);
     window.addEventListener("keydown", esc);
     return () => {
-      timers.forEach(clearTimeout);
+      timers.current.forEach(clearTimeout);
       window.removeEventListener("keydown", esc);
     };
   }, []);
+
+  /** Jump straight to the last beat: finish the stitch and show the suggestion. */
+  function skip() {
+    timers.current.forEach(clearTimeout);
+    sheet.current?.setCurrentTime?.(SEW_START + SEW_DUR + 1);
+    setPhase("next");
+  }
 
   function leave(to: string | null) {
     setGoTo(to);
@@ -83,13 +98,25 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
   }, [phase, onDone]);
 
   const p = story?.profile ?? null;
-  const pose: MascotPose = phase === "measure" ? "point-left" : phase === "sew" ? "idle" : "cheer";
+  const pose: MascotPose = phase === "measure" ? "point-left" : phase === "sew" ? "idle" : phase === "pas" ? "cheer" : "wave";
   const said =
-    phase === "measure" ? `Halo, ${first || "kamu"}! Aku ukur bahanmu dulu ya…` : phase === "sew" ? sewLine(p) : (story?.next.say ?? "Pas!");
+    phase === "measure"
+      ? `Halo, ${first || "kamu"}! Aku ukur bahanmu dulu ya…`
+      : phase === "sew"
+        ? sewLine(p)
+        : phase === "pas"
+          ? "Pas! Ini CV-mu, dijahit dari bahanmu sendiri."
+          : (story?.next.say ?? "Kita mulai dari mana hari ini?");
   const skills = p ? skillsOf(p) : [];
 
   return (
-    <div className={`welcome phase-${phase}`} role="dialog" aria-modal="true" aria-label={`Selamat datang di ${APP_NAME}`}>
+    <div
+      className={`welcome phase-${phase}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Selamat datang di ${APP_NAME}`}
+      onClick={(e) => phase !== "next" && phase !== "leave" && !(e.target as HTMLElement).closest("button") && skip()}
+    >
       <div className="welcome-scene">
         <div className="wl-sheet" aria-hidden>
           <div className="wl-tape" />
@@ -127,7 +154,7 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
               <i />
             </div>
           )}
-          <svg className="wl-stitch" viewBox="0 0 230 290" aria-hidden>
+          <svg ref={sheet} className="wl-stitch" viewBox="0 0 230 290" aria-hidden>
             <defs>
               <linearGradient id="wl-needle" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0" stopColor="#8b90a6" />
@@ -157,13 +184,11 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
         </div>
 
         <div className="wl-side">
-          <div className="wl-says" key={said} aria-live="polite">
-            {said}
-          </div>
+          <Says text={said} />
           <div className="wl-benang">
             <Mascot size={128} pose={pose} wear={wear} />
           </div>
-          <div className={`wl-actions${phase === "done" && story ? " in" : ""}`}>
+          <div className={`wl-actions${phase === "next" && story ? " in" : ""}`}>
             {story && (
               <>
                 <button className="btn primary" onClick={() => leave(story.next.to)} autoFocus>
@@ -177,6 +202,27 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Benang's bubble: a moment of typing dots before every new line, so each beat can land. */
+function Says({ text }: { text: string }) {
+  const [shown, setShown] = useState<string | null>(null);
+  useEffect(() => {
+    setShown(null);
+    const t = setTimeout(() => setShown(text), 550);
+    return () => clearTimeout(t);
+  }, [text]);
+  return (
+    <div className="wl-says" aria-live="polite">
+      {shown ?? (
+        <span className="wl-typing" aria-label="Benang sedang mengetik">
+          <i />
+          <i />
+          <i />
+        </span>
+      )}
     </div>
   );
 }

@@ -1,32 +1,24 @@
-import { useId } from "react";
-
-/** The app mark: Benang's head (horns, eyes, grin) under a graduation cap, simplified to read at 24px. */
+/**
+ * The Jahit mark: a CV sheet with a running stitch around its edge and a needle pulling the thread
+ * through its corner, i.e. a CV being tailored. Same picture as the welcome scene; reads down to 20px.
+ */
 export function LogoMark({ size = 32 }: { size?: number }) {
-  const id = useId().replace(/:/g, "");
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden className="logo-mark">
-      <defs>
-        <radialGradient id={`lg-${id}`} cx="0.38" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#dca6ff" />
-          <stop offset="0.55" stopColor="#a35fec" />
-          <stop offset="1" stopColor="#6c2bc4" />
-        </radialGradient>
-      </defs>
-      <path d="M13 30 C6 24 5 15 9 9 C11 16 15 21 21 24 Z" fill="#ff9ccf" />
-      <path d="M51 30 C58 24 59 15 55 9 C53 16 49 21 43 24 Z" fill="#ff9ccf" />
-      <ellipse cx="32" cy="38" rx="25" ry="21" fill={`url(#lg-${id})`} />
-      <ellipse cx="23.5" cy="36" rx="7.5" ry="8" fill="#fff" />
-      <ellipse cx="40.5" cy="36" rx="7.5" ry="8" fill="#fff" />
-      <circle cx="24.5" cy="37.5" r="4.6" fill="#0a0716" />
-      <circle cx="41.5" cy="37.5" r="4.6" fill="#0a0716" />
-      <circle cx="26" cy="35.5" r="1.6" fill="#fff" />
-      <circle cx="43" cy="35.5" r="1.6" fill="#fff" />
-      <path d="M25 48 Q32 54 39 48" stroke="#3b1170" strokeWidth="2.6" strokeLinecap="round" fill="none" />
-      <path d="M29.5 50.4 h2.2 v2.4 h-2.2 Z M32.3 50.4 h2.2 v2.4 h-2.2 Z" fill="#fff" />
-      <path d="M12 16 L32 8 L52 16 L32 24 Z" fill="#1d1a3c" stroke="#6b64b0" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M22 19.5 L42 19.5 L42 25 Q32 29 22 25 Z" fill="#1d1a3c" />
-      <path d="M32 16 L49 17.5 L49 26" stroke="#f3c372" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-      <circle cx="49" cy="27.5" r="2.2" fill="#f3c372" />
+      <rect width="64" height="64" rx="16" fill="#c7a6ff" />
+      {/* the CV sheet */}
+      <rect x="14" y="9" width="32" height="44" rx="4" fill="#fbf8f2" />
+      <circle cx="21.5" cy="17.5" r="3.2" fill="#1d0f38" />
+      <rect x="27" y="15" width="13" height="3" rx="1.5" fill="#1d0f38" />
+      <rect x="27" y="20" width="9" height="2.2" rx="1.1" fill="#8d84a8" />
+      <rect x="19" y="27" width="21" height="2.4" rx="1.2" fill="#8d84a8" />
+      <rect x="19" y="32" width="16" height="2.4" rx="1.2" fill="#8d84a8" />
+      {/* running stitch along the left and bottom edge, sewn up to the needle */}
+      <path d="M17.5 13 V48.5 H36" stroke="#6c2bc4" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="3.2 2.8" fill="none" />
+      {/* the needle, going in at the bottom-right corner, with its thread */}
+      <path d="M38 47 C42 44 46 47 50 45" stroke="#6c2bc4" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      <path d="M33.5 51.5 L52 33 C53.2 31.8 55.2 33.8 54 35 L35.5 53.5 Z" fill="#1d0f38" />
+      <ellipse cx="51.6" cy="35.4" rx="1.9" ry="0.85" transform="rotate(-45 51.6 35.4)" fill="#c7a6ff" />
     </svg>
   );
 }

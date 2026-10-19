@@ -122,7 +122,7 @@ export function LeadsPage() {
     <>
       <section className="hero">
         <Mascot size={96} pose="idle" className="hero-mascot" />
-        <span className="eyebrow">Langkah 1 · Ukur</span>
+        <span className="eyebrow">Langkah 2 · Ukur lowongan</span>
         <h1>Lowongan mana yang mau dinilai?</h1>
       </section>
       <PasteBox onAdded={added} />

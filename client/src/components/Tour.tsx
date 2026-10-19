@@ -11,17 +11,20 @@ import { DemoBahan, DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoPr
  * Benang the mascot rides along in the card, pointing at the spotlight, and each step plays a short
  * demo with example data so the flow makes sense before the user has data of their own.
  */
-type Step = { route?: string; target?: string; title: string; body: string; place?: "bottom" | "top" | "right" | "left"; demo?: ComponentType };
+// The four chapters of the flow; each step says which one it belongs to so the order reads as one story.
+const CHAPTERS = ["Siapkan bahan", "Ukur lowongan", "Pas & jahit CV", "Kirim & isi form"];
+type Step = { route?: string; target?: string; chapter?: number; title: string; body: string; place?: "bottom" | "top" | "right" | "left"; demo?: ComponentType };
 
 const STEPS: Step[] = [
   {
     title: "Halo, aku Benang",
     demo: DemoFlow,
-    body: `Di ${APP_NAME}, CV-mu dijahit ulang untuk tiap lowongan, seperti penjahit mengepas baju: diukur dulu, baru dipotong. Alurnya empat langkah, tur ini kurang dari satu menit.`,
+    body: `Di ${APP_NAME}, CV-mu dijahit ulang untuk tiap lowongan, seperti penjahit mengepas baju: diukur dulu, baru dipotong. Ada empat langkah: siapkan bahan, ukur lowongan, pas & jahit CV, lalu kirim. Tur ini kurang dari satu menit.`,
   },
   {
     route: "/profile",
     target: '[data-tour="bahan"]',
+    chapter: 0,
     title: "Siapkan bahannya dulu",
     demo: DemoBahan,
     body: "Ini Bahan CV: semua pengalaman, skill, dan pendidikanmu. Ceritakan ke Benang lewat obrolan, atau impor CV lamamu. Semua CV nanti dijahit dari bahan ini, tanpa ditambah-tambah.",
@@ -30,14 +33,16 @@ const STEPS: Step[] = [
   {
     route: "/leads",
     target: '[data-tour="starters"]',
-    title: "Mulai dari LinkedIn",
+    chapter: 1,
+    title: "Bahan siap? Cari lowongannya",
     demo: DemoCopy,
-    body: "Buka hasil pencarian, satu lowongan, atau postingan rekrutmen di LinkedIn. Tekan Ctrl+A lalu Ctrl+C. Klik salah satu kartu ini untuk menempel isi clipboard.",
+    body: "Sekarang cari lowongan untuk diukur. Paling cepat dari LinkedIn: buka hasil pencarian, satu lowongan, atau postingan rekrutmen, tekan Ctrl+A lalu Ctrl+C, lalu klik salah satu kartu ini.",
     place: "bottom",
   },
   {
     route: "/leads",
     target: '[data-tour="composer"]',
+    chapter: 1,
     title: "Tempel, lalu kirim",
     demo: DemoPaste,
     body: "Teks menu dan iklan ikut tersalin tidak masalah. Isi Fokus pencarian sekali (misalnya DevOps, Jabodetabek), lalu tekan tombol panah. Benang langsung mengukurnya.",
@@ -46,6 +51,7 @@ const STEPS: Step[] = [
   {
     route: "/leads",
     target: '[data-tour="results"]',
+    chapter: 1,
     title: "Lowongan sudah diukur",
     demo: DemoResults,
     body: "Tiap lowongan diukur: skor kecocokan, ukuran perusahaan, dan tanda bahaya seperti biaya rekrutmen. Buka satu baris untuk mulai menjahit CV-nya.",
@@ -54,6 +60,7 @@ const STEPS: Step[] = [
   {
     route: "/applications",
     target: '[data-tour="stats"]',
+    chapter: 2,
     title: "Pantau semua lamaran",
     demo: DemoStats,
     body: "Angka besar adalah rata-rata kecocokan. Di bawahnya: berapa lowongan yang sudah diukur, dijahit jadi CV, dikirim, dan sampai interview. Lowongan dari luar LinkedIn bisa diukur lewat tombol putih.",
@@ -62,6 +69,7 @@ const STEPS: Step[] = [
   {
     route: "/applications",
     target: '[data-tour="app-list"]',
+    chapter: 2,
     title: "Benang di tiap lamaran",
     demo: DemoConfirm,
     body: "Tiap lamaran punya benang Ukur, Pas, Jahit, Kirim. Di tahap Pas, jawab pertanyaan konfirmasi supaya CV tetap jujur. Setelah itu CV dijahit: unduh PDF, lalu tulis email di tab Email.",
@@ -70,6 +78,7 @@ const STEPS: Step[] = [
   {
     route: "/forms",
     target: '[data-tour="forms"]',
+    chapter: 3,
     title: "Form HR",
     demo: DemoForm,
     body: "Dapat form data diri .docx dari HR? Unggah di sini. Benang mengisi yang sudah dia tahu, menanyakan sisanya lewat obrolan, lalu mencatatnya untuk form berikutnya.",
@@ -78,6 +87,7 @@ const STEPS: Step[] = [
   {
     route: "/forms?tab=data",
     target: '[data-tour="signature"]',
+    chapter: 3,
     title: "Buku catatan Benang",
     demo: DemoSign,
     body: "Semua yang Benang ingat untuk form ada di sini. Gambar tanda tanganmu sekali, Benang menempelnya di setiap form.",
@@ -271,6 +281,11 @@ export function Tour({ onClose }: { onClose: () => void }) {
           )}
           <div>
             <div className="tour-step">
+              {step.chapter != null && (
+                <span className="tour-chapter">
+                  Langkah {step.chapter + 1} · {CHAPTERS[step.chapter]}
+                </span>
+              )}
               {i + 1} dari {STEPS.length}
             </div>
             <h2>{step.title}</h2>
