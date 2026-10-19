@@ -191,46 +191,43 @@ export function DemoPaste() {
 }
 
 const LEADS = [
-  { role: "DevOps Engineer", co: "PT Nusantara Digital", fit: 92, size: "200–500 orang" },
-  { role: "Cloud Engineer", co: "Bank Sinar Jaya", fit: 74, size: "1.000+ orang" },
-  { role: "IT Support", co: "PT Karir Cepat", fit: 38, size: "Tidak jelas", flag: "Minta biaya rekrutmen" },
+  { role: "DevOps Engineer", co: "PT Nusantara Digital", fit: 92, size: "200–500 orang", rec: "Layak daftar" },
+  { role: "Cloud Engineer", co: "Bank Sinar Jaya", fit: 74, size: "1.000+ orang", rec: "Coba aja" },
+  { role: "IT Support", co: "PT Karir Cepat", fit: 38, size: "Tidak jelas", rec: "Lewati", flag: "Minta biaya rekrutmen" },
 ];
 
-// Color stays a small status dot; numbers and bars are monochrome.
+// Color stays a small status dot; numbers are monochrome.
 function fitColor(v: number) {
   return v >= 80 ? "var(--lime)" : v >= 60 ? "var(--amber)" : "var(--rose)";
 }
 
+/** Measured jobs, laid out like the real Lowongan list: one list, hairline rows, score on the right. */
 export function DemoResults() {
   const t = useClock(3400);
   return (
     <Win title="Hasil ukur">
-      <div className="td-rows">
+      <div className="td-list">
         {LEADS.map((l, k) => {
-          const p = prog(t, 200 + k * 450, 900);
-          const v = Math.round(l.fit * p);
+          const at = 200 + k * 450;
           return (
-            <div key={l.co} className="td-row" style={{ opacity: prog(t, 200 + k * 450, 300), transform: `translateY(${(1 - prog(t, 200 + k * 450, 500)) * 10}px)` }}>
-              <div className="td-score">
-                <i className="td-dot" style={{ background: fitColor(l.fit) }} />
-                {v}
-                <small>%</small>
-              </div>
-              <div className="td-row-main">
-                <div className="td-row-head">
-                  <b>{l.role}</b>
-                  {l.flag && (
-                    <span className="td-flag" style={{ opacity: prog(t, 1900, 300) }}>
-                      <Flag size={10} /> {l.flag}
-                    </span>
-                  )}
-                </div>
+            <div key={l.co} className="td-li-row" style={{ opacity: prog(t, at, 300), transform: `translateY(${(1 - prog(t, at, 500)) * 8}px)` }}>
+              <span className="td-co">{l.co.replace(/^PT\s+/, "").slice(0, 1)}</span>
+              <div className="td-li-main">
+                <b>{l.role}</b>
                 <span>
                   {l.co} · {l.size}
                 </span>
-                <div className="td-meter">
-                  <i style={{ width: `${v}%` }} />
-                </div>
+                {l.flag && (
+                  <span className="td-warn" style={{ opacity: prog(t, 1900, 300) }}>
+                    <Flag size={10} /> {l.flag}
+                  </span>
+                )}
+              </div>
+              <div className="td-li-score">
+                <b>{Math.round(l.fit * prog(t, at, 900))}</b>
+                <span>
+                  <i style={{ background: fitColor(l.fit) }} /> {l.rec}
+                </span>
               </div>
             </div>
           );

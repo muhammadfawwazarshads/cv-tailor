@@ -906,20 +906,6 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 .td-status { display: flex; align-items: center; gap: 8px; margin-top: 9px; color: var(--ink-2); font-size: 11.5px; animation: tour-fade .3s ease; }
 .td-status .spinner, .td-prov .spinner { width: 11px; height: 11px; border-width: 1.5px; }
 
-.td-rows { display: flex; flex-direction: column; gap: 7px; }
-.td-row { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border-radius: 10px; background: rgba(255,255,255,.035); border: 1px solid var(--line); position: relative; }
-.td-score { width: 44px; display: flex; align-items: baseline; gap: 1px; color: var(--ink); font-size: 18px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.td-score small { font-size: 10px; opacity: .7; }
-.td-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.td-row-main b { font-weight: 600; font-size: 12px; }
-.td-row-main span { color: var(--muted); font-size: 10.5px; }
-.td-meter { height: 3px; border-radius: 2px; background: rgba(255,255,255,.07); margin-top: 3px; overflow: hidden; }
-.td-meter i { display: block; height: 100%; border-radius: 2px; background: rgba(255,255,255,.75); }
-.td-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; margin-right: 6px; align-self: center; }
-.td-row-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.td-row-head b { white-space: nowrap; }
-.td-flag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-2); font-size: 10px; white-space: nowrap; }
-.td-flag svg { color: var(--rose); }
 
 .td-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .td-stat { padding: 10px 8px; border-radius: 10px; background: rgba(255,255,255,.035); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; }
@@ -1003,33 +989,41 @@ kbd.pop { background: #f2f3f7; color: #0d1019; transform: translateY(1px); }
 @media (max-width: 600px) { .signin-top { padding: 16px; } .signin-main { justify-content: flex-start; padding-top: 12px; } }
 @media (prefers-reduced-motion: reduce) { .signin-perch, .signin-card, .signin-card.shake { animation: none; } }
 
-/* ---------- Welcome after sign-in: Benang stitches the user's CV to fit ---------- */
-.welcome { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: rgba(10, 13, 22, 1); transition: background-color .65s ease; }
-.welcome.phase-leave { background-color: rgba(10, 13, 22, 0); pointer-events: none; }
-.welcome-body { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; }
-.welcome-stage { position: relative; width: 300px; height: 290px; animation: signin-in .6s cubic-bezier(.22, 1, .36, 1) both; }
-.welcome-sheet { width: 300px; height: 290px; overflow: visible; filter: drop-shadow(0 28px 44px rgba(0, 0, 0, .6)); transform-origin: 50% 50%; transition: transform .65s cubic-bezier(.65, 0, .35, 1), opacity .5s ease .15s; }
-.welcome-paper { fill: #141824; stroke: rgba(255, 255, 255, .13); stroke-width: 1; }
-.welcome-name { font: 600 11px var(--font); fill: #eef0f6; }
-.welcome-tag { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(.3) rotate(-20deg); transition: opacity .2s, transform .45s cubic-bezier(.34, 1.56, .64, 1); }
-.phase-done .welcome-tag, .phase-leave .welcome-tag { opacity: 1; transform: rotate(-6deg); }
-.welcome-tag-text { font: 600 10px var(--font); fill: #1d0f38; }
-.phase-done .welcome-sheet { animation: welcome-snug .5s cubic-bezier(.34, 1.56, .64, 1); }
-@keyframes welcome-snug { 40% { transform: scale(1.04) rotate(-1.2deg); } }
-.phase-leave .welcome-sheet { transform: scale(3.2); opacity: 0; }
-.welcome-mascot { position: absolute; right: -96px; bottom: -20px; transition: opacity .3s, transform .3s; }
-.welcome h1 { margin-top: 26px; font-size: 28px; font-weight: 600; letter-spacing: -0.03em; animation: signin-in .6s .2s cubic-bezier(.22, 1, .36, 1) both; }
-.welcome p { margin-top: 6px; max-width: 340px; color: var(--ink-2); font-size: 14px; line-height: 1.5; animation: signin-in .6s .35s cubic-bezier(.22, 1, .36, 1) both; }
-.welcome h1, .welcome p { transition: opacity .3s, transform .3s; }
-.phase-leave .welcome-mascot, .phase-leave h1, .phase-leave p, .phase-leave .welcome-next { opacity: 0; transform: translateY(8px); }
-/* after the stitch: Benang picks the story up where it was left */
-.welcome-next { margin-top: 18px; min-height: 92px; display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
-.welcome-next.in { opacity: 1; transform: none; }
-.welcome-says { max-width: 380px; padding: 10px 14px; border-radius: 14px; background: #1a1e2c; border: 1px solid var(--line-strong); color: var(--ink); font-size: 14px; }
-.welcome-actions { display: flex; gap: 8px; }
-.welcome-actions .btn.primary { background: var(--iris); border-color: var(--iris); color: #1d0f38; border-radius: 999px; padding-left: 18px; padding-right: 18px; }
-@media (max-width: 600px) { .welcome-stage, .welcome-sheet { width: 240px; height: 232px; } .welcome-mascot { right: -40px; } .welcome-mascot .mascot { width: 96px; height: auto; } }
-@media (prefers-reduced-motion: reduce) { .welcome-stage, .welcome h1, .welcome p, .phase-done .welcome-sheet { animation: none; } .welcome-sheet, .welcome-tag { transition: none; } }
+/* ---------- Welcome after sign-in: Benang measures, sews and tags the user's own CV ---------- */
+.welcome { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 24px; background: rgba(10, 13, 22, .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); transition: opacity .6s ease; }
+.welcome.phase-leave { opacity: 0; pointer-events: none; }
+.welcome-scene { display: flex; align-items: center; gap: 28px; animation: signin-in .6s cubic-bezier(.22, 1, .36, 1) both; }
+.wl-sheet { position: relative; flex: none; width: 230px; height: 290px; padding: 26px 24px; border-radius: 12px; background: #131722; border: 1px solid var(--line); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8); overflow: hidden; transition: transform .6s cubic-bezier(.65, 0, .35, 1); }
+.phase-done .wl-sheet { animation: welcome-snug .5s cubic-bezier(.34, 1.56, .64, 1); }
+.phase-leave .wl-sheet { transform: scale(1.6); }
+@keyframes welcome-snug { 40% { transform: scale(1.03) rotate(-1deg); } }
+/* beat 1: a tailor's tape slides across the top */
+.wl-tape { position: absolute; left: 0; top: 0; height: 12px; width: 0; background: #e9e0cd repeating-linear-gradient(90deg, #6f6350 0 1px, transparent 1px 7px) top / 100% 5px no-repeat; opacity: .85; animation: wl-measure 1.2s .2s cubic-bezier(.65, 0, .35, 1) forwards; }
+.phase-sew .wl-tape, .phase-done .wl-tape, .phase-leave .wl-tape { opacity: 0; transition: opacity .4s; }
+@keyframes wl-measure { to { width: 100%; } }
+.wl-head { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; }
+.wl-head b { display: block; font-size: 13px; color: var(--ink); }
+.wl-head span { display: block; font-size: 10.5px; color: var(--iris); }
+.wl-avatar { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 12px; font-weight: 600; color: var(--ink); background: rgba(199, 166, 255, .16); }
+.wl-title { margin: 10px 0 6px; padding-bottom: 3px; border-bottom: 1px solid var(--line); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.wl-item { margin-bottom: 8px; }
+.wl-item b { display: block; font-size: 10.5px; font-weight: 500; color: var(--ink-2); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-item i { display: block; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .07); margin-bottom: 4px; }
+.wl-item i.short { width: 62%; }
+.wl-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+.wl-skills span { font-size: 9.5px; color: var(--ink-2); padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line-strong); }
+.wl-stitch { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+/* beat 3: the "pas" tag is sewn on */
+.wl-tag { position: absolute; right: 16px; bottom: 16px; padding: 3px 10px; border-radius: 999px; background: var(--iris); color: #1d0f38; font-size: 11px; font-weight: 600; opacity: 0; transform: scale(.3) rotate(-20deg); transition: opacity .2s, transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+.phase-done .wl-tag, .phase-leave .wl-tag { opacity: 1; transform: rotate(-6deg); }
+.wl-side { display: flex; flex-direction: column; align-items: flex-start; width: 300px; }
+.wl-says { position: relative; padding: 11px 14px; border-radius: 14px 14px 14px 4px; background: #191d2a; border: 1px solid var(--line-strong); color: var(--ink); font-size: 14px; line-height: 1.45; animation: story-in .3s cubic-bezier(.22, 1, .36, 1) both; }
+.wl-benang { margin: 2px 0 0 -14px; }
+.wl-actions { display: flex; gap: 8px; min-height: 40px; opacity: 0; transform: translateY(6px); transition: opacity .4s, transform .4s; }
+.wl-actions.in { opacity: 1; transform: none; }
+.wl-actions .btn.primary { background: var(--iris); border-color: var(--iris); color: #1d0f38; border-radius: 999px; padding-left: 18px; padding-right: 18px; }
+@media (max-width: 640px) { .welcome-scene { flex-direction: column; gap: 14px; } .wl-sheet { width: 200px; height: 252px; padding: 20px; } .wl-side { width: 100%; max-width: 320px; align-items: center; text-align: center; } .wl-benang { margin: 0; } }
+@media (prefers-reduced-motion: reduce) { .welcome-scene, .wl-tape, .phase-done .wl-sheet, .wl-says { animation: none; } .wl-tag, .wl-sheet { transition: none; } }
 
 /* ---------- Workshop: measure, fit, sew, send ---------- */
 /* Thread track: done stages stitched in Benang's thread, the rest still tailor's chalk */
@@ -1241,3 +1235,25 @@ button.sew-knot:hover { transform: scale(1.1); }
 .story-wardrobe b { font-size: 12.5px; }
 @media (max-width: 760px) { .wardrobe { grid-template-columns: repeat(2, minmax(0, 1fr)); } .wardrobe.compact { grid-template-columns: repeat(5, 26px); } }
 @media (prefers-reduced-motion: reduce) { .wear, .mascot-cv { transition: none; animation: none; } }
+
+/* Brand: name with the tagline under it; the icon rail shows only the mark */
+.brand-text { display: none; flex-direction: column; line-height: 1.15; }
+.brand-text span { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.brand-text small { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.signin-top .brand-text, .shell.wide .brand-text { display: flex; }
+@media (max-width: 900px) { .sidebar .brand-text { display: flex; } }
+
+/* Tour "Hasil ukur": same shape as the real Lowongan list */
+.td-list { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.td-li-row { display: flex; align-items: center; gap: 10px; padding: 9px 11px; }
+.td-li-row + .td-li-row { border-top: 1px solid var(--line); }
+.td-co { width: 26px; height: 26px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line-strong); }
+.td-li-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.td-li-main b { font-size: 12px; font-weight: 500; color: var(--ink); }
+.td-li-main > span { font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-warn { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 10px; color: var(--ink-2); }
+.td-warn svg { color: var(--rose); }
+.td-li-score { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.td-li-score b { font-size: 15px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.td-li-score span { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); white-space: nowrap; }
+.td-li-score i { width: 6px; height: 6px; border-radius: 50%; }

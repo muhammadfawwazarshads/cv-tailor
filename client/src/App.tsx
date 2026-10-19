@@ -2,7 +2,7 @@ import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, Layers, LogOut, Me
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
-import { APP_NAME } from "./brand";
+import { APP_NAME, TAGLINE } from "./brand";
 import { Tour, tourHidden } from "./components/Tour";
 import { LogoMark } from "./components/Logo";
 import { Loading } from "./components/ui";
@@ -27,7 +27,10 @@ export function Brand() {
       <div className="brand-mark">
         <LogoMark size={34} />
       </div>
-      {APP_NAME}
+      <div className="brand-text">
+        <span>{APP_NAME}</span>
+        <small>{TAGLINE}</small>
+      </div>
     </div>
   );
 }

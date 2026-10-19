@@ -6,16 +6,20 @@ import { Mascot, type MascotPose, type Wear } from "./Mascot";
 import { wearFromProfile } from "./Outfit";
 
 /**
- * Hello right after signing in, told through the name: a needle pulls Benang's thread around a CV
- * sheet with the user's name on it, stitching it "to fit", then Benang picks the story up where the
- * user left it (thin material, applications measured but not sewn, ...) and offers that next step.
+ * Hello right after signing in, told as a three-beat scene on the user's own CV sheet: Benang measures
+ * it with a tape, sews it with a needle, and tags it "pas", narrating in a speech bubble. The last beat
+ * picks the story up where the user left it (thin material, applications measured but not sewn, ...).
  */
-const SEW_START = 0.5; // s
-const SEW_DUR = 1.9; // s
-// Running stitch just inside the sheet's edge, clockwise from the top-left corner.
-const STITCH = "M58 22 H182 Q190 22 190 30 V202 Q190 210 182 210 H58 Q50 210 50 202 V30 Q50 22 58 22";
+type Phase = "measure" | "sew" | "done" | "leave";
+const SEW_START = 1.5; // s, when the needle starts
+const SEW_DUR = 1.8; // s
+// Running stitch just inside the sheet's edge (sheet is 230 x 290), clockwise from the top-left corner.
+const STITCH = "M19 10 H211 Q220 10 220 19 V271 Q220 280 211 280 H19 Q10 280 10 271 V19 Q10 10 19 10";
 
 type Next = { say: string; label: string; to: string };
+type Story = { profile: Profile | null; next: Next };
+
+const skillsOf = (p: Profile) => p.skills.flatMap((g) => g.items.split(",").map((x) => x.trim()).filter(Boolean));
 
 /** Where the user's story stands, and the step Benang suggests next. */
 function nextStep(p: Profile, apps: ApplicationSummary[]): Next {
@@ -23,35 +27,45 @@ function nextStep(p: Profile, apps: ApplicationSummary[]): Next {
   const waiting = apps.filter((a) => a.fit_score != null && a.versions === 0).length;
   const worn = wearFromProfile(p).length;
   if (!p.name || !p.experience.length)
-    return { say: `Bahan CV-mu masih tipis, aku baru pakai ${worn} dari 5 setelan. Ceritain dulu ke aku, biar ada yang bisa dijahit (dan aku makin rapi).`, label: "Cerita ke Benang", to: "/profile" };
+    return { say: `Bahannya masih tipis, aku baru pakai ${worn} dari 5 setelan. Ceritain dulu ke aku, biar ada yang bisa dijahit.`, label: "Cerita ke Benang", to: "/profile" };
   if (!apps.length) return { say: "Bahanmu sudah siap. Tinggal ukur lowongan pertama.", label: "Ukur lowongan", to: "/leads" };
   if (waiting) return { say: `${waiting} lamaran sudah diukur tapi belum dijahit. Lanjut dari situ?`, label: "Lanjut menjahit", to: "/applications" };
   return { say: `${sent} lamaran sudah dikirim. Ada lowongan baru buat diukur hari ini?`, label: "Ukur lowongan baru", to: "/leads" };
 }
 
+/** What Benang says while sewing, from what is actually in the material. */
+function sewLine(p: Profile | null) {
+  if (!p) return "Sekarang aku jahit…";
+  const exp = p.experience.length;
+  const sk = skillsOf(p).length;
+  if (!exp && !sk) return "Bahannya baru sedikit, tapi aku jahit yang ada dulu…";
+  return `${exp ? `${exp} pengalaman` : ""}${exp && sk ? ", " : ""}${sk ? `${sk} skill` : ""}. Aku jahit jadi satu…`;
+}
+
 export function Welcome({ name, onDone }: { name: string; onDone: () => void }) {
-  const [phase, setPhase] = useState<"sew" | "done" | "leave">("sew");
-  const [next, setNext] = useState<Next | null>(null);
+  const [phase, setPhase] = useState<Phase>("measure");
+  const [story, setStory] = useState<Story | null>(null);
   // starts undressed; the pieces the user has earned pop on once the profile loads
   const [wear, setWear] = useState<Wear[]>([]);
   const [goTo, setGoTo] = useState<string | null>(null);
   const navigate = useNavigate();
-  const full = (name || "").trim();
-  const first = full.split(/\s+/)[0];
+  const first = (name || "").trim().split(/\s+/)[0];
 
   useEffect(() => {
     Promise.all([api<{ profile: Profile }>("GET", "/api/profile"), api<{ applications: ApplicationSummary[] }>("GET", "/api/applications")])
       .then(([p, a]) => {
         setWear(wearFromProfile(p.profile));
-        setNext(nextStep(p.profile, a.applications));
+        setStory({ profile: p.profile, next: nextStep(p.profile, a.applications) });
       })
-      .catch(() => setNext({ say: "Kita mulai dari mana hari ini?", label: "Ukur lowongan", to: "/leads" }));
+      .catch(() => setStory({ profile: null, next: { say: "Kita mulai dari mana hari ini?", label: "Ukur lowongan", to: "/leads" } }));
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setPhase("done"), reduced ? 0 : (SEW_START + SEW_DUR) * 1000);
+    const timers = reduced
+      ? [setTimeout(() => setPhase("done"), 0)]
+      : [setTimeout(() => setPhase("sew"), SEW_START * 1000), setTimeout(() => setPhase("done"), (SEW_START + SEW_DUR) * 1000)];
     const esc = (e: KeyboardEvent) => e.key === "Escape" && leave(null);
     window.addEventListener("keydown", esc);
     return () => {
-      clearTimeout(t);
+      timers.forEach(clearTimeout);
       window.removeEventListener("keydown", esc);
     };
   }, []);
@@ -64,17 +78,56 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
   useEffect(() => {
     if (phase !== "leave") return;
     if (goTo) navigate(goTo);
-    const t = setTimeout(onDone, 650);
+    const t = setTimeout(onDone, 600);
     return () => clearTimeout(t);
   }, [phase, onDone]);
 
-  const pose: MascotPose = phase === "sew" ? "point-left" : "cheer";
+  const p = story?.profile ?? null;
+  const pose: MascotPose = phase === "measure" ? "point-left" : phase === "sew" ? "idle" : "cheer";
+  const said =
+    phase === "measure" ? `Halo, ${first || "kamu"}! Aku ukur bahanmu dulu ya…` : phase === "sew" ? sewLine(p) : (story?.next.say ?? "Pas!");
+  const skills = p ? skillsOf(p) : [];
 
   return (
-    <div className={`welcome phase-${phase}`} role="dialog" aria-modal="true" aria-label="Selamat datang">
-      <div className="welcome-body">
-        <div className="welcome-stage">
-          <svg className="welcome-sheet" viewBox="0 0 240 232" aria-hidden>
+    <div className={`welcome phase-${phase}`} role="dialog" aria-modal="true" aria-label={`Selamat datang di ${APP_NAME}`}>
+      <div className="welcome-scene">
+        <div className="wl-sheet" aria-hidden>
+          <div className="wl-tape" />
+          <div className="wl-head">
+            <span className="wl-avatar">{(p?.name || name || "?").trim().slice(0, 1).toUpperCase()}</span>
+            <div>
+              <b>{p?.name || name || "CV kamu"}</b>
+              <span>{p?.headline || "Posisi incaran"}</span>
+            </div>
+          </div>
+          <div className="wl-title">Pengalaman</div>
+          {p?.experience.length ? (
+            p.experience.slice(0, 2).map((e) => (
+              <div key={e.id} className="wl-item">
+                <b>{[e.role, e.organization].filter(Boolean).join(" · ")}</b>
+                <i />
+                <i className="short" />
+              </div>
+            ))
+          ) : (
+            <div className="wl-item ghost">
+              <i />
+              <i className="short" />
+            </div>
+          )}
+          <div className="wl-title">Skill</div>
+          {skills.length ? (
+            <div className="wl-skills">
+              {skills.slice(0, 6).map((s) => (
+                <span key={s}>{s}</span>
+              ))}
+            </div>
+          ) : (
+            <div className="wl-item ghost">
+              <i />
+            </div>
+          )}
+          <svg className="wl-stitch" viewBox="0 0 230 290" aria-hidden>
             <defs>
               <linearGradient id="wl-needle" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0" stopColor="#8b90a6" />
@@ -87,23 +140,10 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
                 </path>
               </mask>
             </defs>
-
-            {/* the CV sheet */}
-            <rect className="welcome-paper" x="40" y="12" width="160" height="208" rx="10" />
-            <circle cx="70" cy="50" r="12" fill="rgba(199, 166, 255, 0.25)" />
-            <text x="90" y="47" className="welcome-name">
-              {full || "CV kamu"}
-            </text>
-            <rect x="90" y="53" width="56" height="5" rx="2.5" fill="rgba(255, 255, 255, 0.12)" />
-            {[78, 90, 102, 124, 136, 148, 170, 182, 194].map((y, k) => (
-              <rect key={y} x="58" y={y} width={[124, 104, 116, 124, 96, 112, 124, 88, 108][k]} height="5" rx="2.5" fill={k % 3 === 0 ? "rgba(255, 255, 255, 0.14)" : "rgba(255, 255, 255, 0.07)"} />
-            ))}
-
             {/* Benang's thread, revealed behind the needle */}
-            <path d={STITCH} mask="url(#wl-sewn)" fill="none" stroke="#c7a6ff" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="7 5" opacity="0">
+            <path d={STITCH} mask="url(#wl-sewn)" fill="none" stroke="#c7a6ff" strokeOpacity="0.8" strokeWidth="1.6" strokeLinecap="round" strokeDasharray="6 5" opacity="0">
               <animate attributeName="opacity" values="0;1" begin={`${SEW_START}s`} dur="0.05s" fill="freeze" />
             </path>
-
             {/* the needle rides the stitch line, pointing where it goes */}
             <g opacity="0">
               <animate attributeName="opacity" values="0;1" begin={`${SEW_START}s`} dur="0.12s" fill="freeze" />
@@ -112,35 +152,29 @@ export function Welcome({ name, onDone }: { name: string; onDone: () => void }) 
               <path d="M-22 -1.8 L5 -0.7 L10 0 L5 0.7 L-22 1.8 Q-24 0 -22 -1.8 Z" fill="url(#wl-needle)" stroke="#5b6075" strokeWidth="0.4" />
               <ellipse cx="-18.5" cy="0" rx="2.4" ry="0.8" fill="#0a0d16" />
             </g>
-
-            {/* a small "pas" tag sewn on once the stitch closes */}
-            <g className="welcome-tag">
-              <rect x="146" y="196" width="46" height="20" rx="10" fill="#c7a6ff" />
-              <text x="169" y="210" textAnchor="middle" className="welcome-tag-text">
-                pas ✓
-              </text>
-            </g>
           </svg>
-          <div className="welcome-mascot">
-            <Mascot size={140} pose={pose} wear={wear} />
-          </div>
+          <span className="wl-tag">pas ✓</span>
         </div>
-        <h1>{first ? `Halo, ${first}.` : "Halo."}</h1>
-        <p>Aku Benang. Di {APP_NAME}, CV-mu dijahit ulang biar pas untuk tiap lowongan.</p>
-        <div className={`welcome-next${phase !== "sew" && next ? " in" : ""}`}>
-          {next && (
-            <>
-              <div className="welcome-says">{next.say}</div>
-              <div className="welcome-actions">
-                <button className="btn primary" onClick={() => leave(next.to)} autoFocus>
-                  {next.label}
+
+        <div className="wl-side">
+          <div className="wl-says" key={said} aria-live="polite">
+            {said}
+          </div>
+          <div className="wl-benang">
+            <Mascot size={128} pose={pose} wear={wear} />
+          </div>
+          <div className={`wl-actions${phase === "done" && story ? " in" : ""}`}>
+            {story && (
+              <>
+                <button className="btn primary" onClick={() => leave(story.next.to)} autoFocus>
+                  {story.next.label}
                 </button>
                 <button className="btn ghost" onClick={() => leave(null)}>
                   Nanti saja
                 </button>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
