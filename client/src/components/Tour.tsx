@@ -54,7 +54,7 @@ const STEPS: Step[] = [
     chapter: 1,
     title: "Benang menyaring lowongannya",
     demo: DemoResults,
-    body: "Dua hal dicek: perusahaannya jelas atau tidak (ukuran, tanda bahaya seperti biaya rekrutmen), dan berapa banyak syaratnya yang memang ada di Bahan CV-mu. CV nanti disesuaikan, tapi tidak ditambah-tambah, jadi jumlah syarat yang kamu punya itu batas seberapa pas CV-nya bisa jadi. Hasilnya: Layak daftar, Coba aja, atau Lewati.",
+    body: "Dua hal dicek: perusahaannya jelas atau tidak (ukuran, tanda bahaya seperti biaya rekrutmen), dan berapa banyak syaratnya yang memang ada di Bahan CV-mu. CV nanti disesuaikan, tapi tidak ditambah-tambah, jadi jumlah syarat yang kamu punya itu batas seberapa pas CV-nya bisa jadi. Hasilnya: Layak daftar, Coba aja, atau Lewati. Mau cepat? Tekan Pilah satu-satu dan geser kanan atau kiri.",
     place: "top",
   },
   {

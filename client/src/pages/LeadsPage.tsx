@@ -9,6 +9,7 @@ import {
   EyeOff,
   FileText,
   Factory,
+  Layers2,
   Megaphone,
   Minus,
   Search,
@@ -22,6 +23,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Application, type LeadRow } from "../api";
 import { Mascot } from "../components/Mascot";
+import { SortDeck } from "../components/SortDeck";
 import { Busy, ErrorBox, Field, Loading, Toast, useAction } from "../components/ui";
 
 const PREF_KEY = "cv-tailor:lead-preferences";
@@ -75,6 +77,8 @@ export function LeadsPage() {
   const [open, setOpen] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  // "Pilah bareng Benang": a snapshot of the new jobs, best first, taken when the deck opens
+  const [deck, setDeck] = useState<LeadRow[] | null>(null);
   const { error, run } = useAction();
 
   useEffect(() => {
@@ -120,6 +124,17 @@ export function LeadsPage() {
 
   return (
     <>
+      {deck && (
+        <SortDeck
+          leads={deck}
+          onDecided={replace}
+          onClose={() => setDeck(null)}
+          onShowSaved={() => {
+            setDeck(null);
+            set({ tab: "saved" });
+          }}
+        />
+      )}
       <section className="hero">
         <Mascot size={96} pose="idle" className="hero-mascot" />
         <span className="eyebrow">Langkah 2 · Ukur lowongan</span>
@@ -143,6 +158,11 @@ export function LeadsPage() {
               ))}
             </div>
             <div className="toolbar-right">
+              {(counts.new ?? 0) > 0 && (
+                <button className="btn sm primary" onClick={() => setDeck((leads ?? []).filter((l) => l.status === "new").sort((a, b) => rank(b) - rank(a)))}>
+                  <Layers2 size={15} /> Pilah satu-satu
+                </button>
+              )}
               <label className="search mini">
                 <Search size={15} />
                 <input type="text" aria-label="Cari lowongan" placeholder="Cari" value={filters.q} onChange={(e) => set({ q: e.target.value })} />
