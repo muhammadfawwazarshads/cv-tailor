@@ -159,6 +159,23 @@ usersRouter.get(
   })),
 );
 
+// Admins can add accounts themselves (e.g. when public sign-up is closed); the person signs in with the
+// password the admin set and can be told to change it.
+usersRouter.post(
+  "/",
+  wrap(async (req, res) => {
+    const body = Credentials.extend({ role: z.enum(["admin", "user"]).default("user") }).parse(req.body);
+    if (await one(`SELECT 1 FROM users WHERE email = $1`, [body.email])) throw new HttpError(409, "Email sudah terdaftar.");
+    const hash = await bcrypt.hash(body.password, 11);
+    const user = await one(
+      `INSERT INTO users (email, name, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role, created_at`,
+      [body.email, body.name || body.email.split("@")[0], hash, body.role],
+    );
+    res.status(201);
+    return { user };
+  }),
+);
+
 usersRouter.patch(
   "/:id",
   wrap(async (req) => {

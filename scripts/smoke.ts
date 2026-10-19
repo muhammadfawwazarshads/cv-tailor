@@ -41,6 +41,10 @@ const u1 = await user("POST", "/api/auth/register", { email: `user${stamp}@examp
 check(u1.status === 200 && u1.user.role === "user", "second account is a normal user");
 
 check((await user("GET", "/api/admin/usage")).status === 403, "normal user cannot open admin endpoints");
+const made = await admin("POST", "/api/admin/users", { email: `made${stamp}@example.com`, name: "Made", password: "password123" });
+check(made.status === 201 && made.user.role === "user", "admin creates an account");
+check((await user("POST", "/api/admin/users", { email: `x${stamp}@example.com`, password: "password123" })).status === 403, "normal user cannot create accounts");
+check((await client()("POST", "/api/auth/login", { email: `made${stamp}@example.com`, password: "password123" })).status === 200, "created account can sign in");
 check((await user("POST", "/api/auth/login", { email: `user${stamp}@example.com`, password: "wrong-password" })).status === 401, "wrong password rejected");
 
 // Providers: a broken one first, the mock second, to exercise fallback.
