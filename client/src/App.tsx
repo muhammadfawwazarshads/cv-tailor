@@ -1,9 +1,11 @@
-import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, IdCard, LogOut, Menu, Radar, Scissors, UserRound, Users } from "lucide-react";
+import { Activity, Briefcase, CircleHelp, Cpu, FileSignature, IdCard, LogOut, Menu, Radar, UserRound, Users } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { api, STANDALONE, type User } from "./api";
 import { Tour, tourSeen } from "./components/Tour";
+import { LogoMark } from "./components/Logo";
 import { Loading } from "./components/ui";
+import { Welcome } from "./components/Welcome";
 import { ProvidersPage } from "./pages/admin/ProvidersPage";
 import { UsagePage } from "./pages/admin/UsagePage";
 import { UsersPage } from "./pages/admin/UsersPage";
@@ -15,15 +17,15 @@ import { LeadsPage } from "./pages/LeadsPage";
 import { PersonalPage } from "./pages/PersonalPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
-type AuthCtx = { user: User | null; setUser: (u: User | null) => void };
-const Ctx = createContext<AuthCtx>({ user: null, setUser: () => {} });
+type AuthCtx = { user: User | null; setUser: (u: User | null) => void; welcoming: boolean };
+const Ctx = createContext<AuthCtx>({ user: null, setUser: () => {}, welcoming: false });
 export const useAuth = () => useContext(Ctx);
 
 export function Brand() {
   return (
     <div className="brand">
       <div className="brand-mark">
-        <Scissors size={16} strokeWidth={2.5} />
+        <LogoMark size={34} />
       </div>
       CV Tailor
     </div>
@@ -33,6 +35,7 @@ export function Brand() {
 export function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [welcoming, setWelcoming] = useState(false);
 
   useEffect(() => {
     api<{ user: User | null }>("GET", "/api/auth/me")
@@ -44,7 +47,17 @@ export function App() {
   if (loading) return <Loading />;
 
   return (
-    <Ctx.Provider value={{ user, setUser }}>
+    <Ctx.Provider
+      value={{
+        user,
+        // Signing in from the auth page plays the welcome; restoring a session on load does not.
+        setUser: (u) => {
+          setUser(u);
+          setWelcoming(!!u);
+        },
+        welcoming,
+      }}
+    >
       {!user ? (
         <Routes>
           <Route path="*" element={<AuthPage />} />
@@ -52,12 +65,13 @@ export function App() {
       ) : (
         <Shell />
       )}
+      {user && welcoming && <Welcome name={user.name} onDone={() => setWelcoming(false)} />}
     </Ctx.Provider>
   );
 }
 
 function Shell() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, welcoming } = useAuth();
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
@@ -130,6 +144,7 @@ function Shell() {
           <button className="icon-btn" onClick={() => setOpen((o) => !o)} aria-label="Buka menu">
             <Menu size={20} />
           </button>
+          <LogoMark size={24} />
           CV Tailor
         </div>
         <div className="topbar">
@@ -143,7 +158,7 @@ function Shell() {
             {user!.name || "Akun"}
           </NavLink>
         </div>
-        {tour && <Tour onClose={() => setTour(false)} />}
+        {tour && !welcoming && <Tour onClose={() => setTour(false)} />}
         <main className="main">
           <Routes>
             <Route path="/" element={<Navigate to="/applications" replace />} />

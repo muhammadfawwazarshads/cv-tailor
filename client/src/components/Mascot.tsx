@@ -1,21 +1,25 @@
 import { useId } from "react";
 
 /**
- * "Jahit", the CV Tailor monster: a round purple furball with big soft eyes, two front teeth,
- * an expression per pose (smile, grin, joy, curious), pink horns and posable arms so it can guide the tour.
+ * "Jahit", the CV Tailor monster: a wide purple furball dressed for a job hunt (graduation cap,
+ * collar and tie, a CV in hand), with one expression per pose. Arms grow from behind the body so no
+ * joint ever shows; "shy" brings both paws up over the eyes (used while a password is typed).
  * Pose and gaze changes animate via CSS transitions.
  */
-export type MascotPose = "idle" | "wave" | "cheer" | "point-left" | "point-right" | "point-up" | "point-down";
+export type MascotPose = "idle" | "wave" | "cheer" | "point-left" | "point-right" | "point-up" | "point-down" | "shy" | "sad";
+type Mood = "smile" | "happy" | "joy" | "curious" | "shy" | "sad";
 
-// Arm angles in degrees (0 = hanging down; positive swings the left arm outward, negative the right).
+// Arm angles in degrees (0 = hanging straight down; positive swings the left arm outward, negative the right).
 const ARMS: Record<MascotPose, [number, number]> = {
-  idle: [18, -18],
-  wave: [18, -150],
-  cheer: [150, -150],
-  "point-left": [92, -18],
-  "point-right": [18, -92],
-  "point-up": [18, -170],
-  "point-down": [18, -48],
+  idle: [30, -30],
+  wave: [30, -132],
+  cheer: [136, -136],
+  "point-left": [92, -30],
+  "point-right": [30, -92],
+  "point-up": [30, -148],
+  "point-down": [30, -55],
+  shy: [10, -10],
+  sad: [14, -14],
 };
 const GAZE: Record<MascotPose, [number, number]> = {
   idle: [0.1, 0.25],
@@ -25,11 +29,24 @@ const GAZE: Record<MascotPose, [number, number]> = {
   "point-right": [1, 0],
   "point-up": [0.3, -1],
   "point-down": [0.6, 0.8],
+  shy: [0, 0],
+  sad: [0, 0.8],
+};
+const MOOD: Record<MascotPose, Mood> = {
+  idle: "smile",
+  wave: "happy",
+  cheer: "joy",
+  "point-left": "curious",
+  "point-right": "curious",
+  "point-up": "curious",
+  "point-down": "curious",
+  shy: "shy",
+  sad: "sad",
 };
 
-const BODY = "M120 34 C178 34 206 80 208 134 C210 190 196 240 120 242 C44 240 30 190 32 134 C34 80 62 34 120 34 Z";
-// Short stubby arm from the shoulder at (0, 0) down to the wrist; the paw is drawn on top.
-const ARM = "M-17 -8 C-19 16 -18 32 -15 46 L15 46 C18 32 19 16 17 -8 Z";
+const BODY = "M120 66 C188 66 228 104 228 152 C228 206 190 236 120 236 C50 236 12 206 12 152 C12 104 52 66 120 66 Z";
+// One smooth arm that swells into a paw, from a pivot hidden inside the body at (0, 0).
+const ARM = "M-14 0 C-15 26 -17 46 -17 62 C-18 79 -9 87 0 87 C9 87 18 79 17 62 C17 46 15 26 14 0 Z";
 
 // Deterministic pseudo-random numbers so the fur looks the same on every render.
 function rng(seed: number) {
@@ -39,6 +56,7 @@ function rng(seed: number) {
 // Tufts of fur poking out of an ellipse (center cx/cy, radii rx/ry), as one path.
 function tufts(cx: number, cy: number, rx: number, ry: number, n: number, len: number, seed: number) {
   const r = rng(seed);
+  const f = (v: number) => v.toFixed(1);
   let d = "";
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + r() * 0.08;
@@ -54,77 +72,74 @@ function tufts(cx: number, cy: number, rx: number, ry: number, n: number, len: n
     const w = 6 + r() * 4;
     const l = len * (0.6 + r() * 0.6);
     const bend = (r() - 0.3) * 6;
-    const tipX = px + nx * l + tx * bend;
-    const tipY = py + ny * l + ty * bend;
-    const f = (v: number) => v.toFixed(1);
-    d += `M${f(px - tx * w - nx * 4)} ${f(py - ty * w - ny * 4)} Q${f(px - tx * w * 0.3 + nx * l * 0.6)} ${f(py - ty * w * 0.3 + ny * l * 0.6)} ${f(tipX)} ${f(tipY)} Q${f(px + tx * w * 0.5 + nx * l * 0.4)} ${f(py + ty * w * 0.5 + ny * l * 0.4)} ${f(px + tx * w - nx * 4)} ${f(py + ty * w - ny * 4)} Z `;
+    d += `M${f(px - tx * w - nx * 4)} ${f(py - ty * w - ny * 4)} Q${f(px - tx * w * 0.3 + nx * l * 0.6)} ${f(py - ty * w * 0.3 + ny * l * 0.6)} ${f(px + nx * l + tx * bend)} ${f(py + ny * l + ty * bend)} Q${f(px + tx * w * 0.5 + nx * l * 0.4)} ${f(py + ty * w * 0.5 + ny * l * 0.4)} ${f(px + tx * w - nx * 4)} ${f(py + ty * w - ny * 4)} Z `;
   }
   return d;
 }
 
-// Short light strands scattered over the body for texture.
+// Short light strands scattered near the edge of the body for texture.
 function strands(seed: number) {
   const r = rng(seed);
   let d = "";
-  for (let i = 0; i < 46; i++) {
+  for (let i = 0; i < 50; i++) {
     const a = r() * Math.PI * 2;
-    const k = 0.62 + r() * 0.3;
-    const x = 120 + Math.cos(a) * 84 * k;
-    const y = 140 + Math.sin(a) * 98 * k;
+    const k = 0.66 + r() * 0.28;
+    const x = 120 + Math.cos(a) * 104 * k;
+    const y = 152 + Math.sin(a) * 80 * k;
     const dx = Math.cos(a) * 5 + (r() - 0.5) * 3;
-    const dy = Math.sin(a) * 5 + 3;
+    const dy = Math.sin(a) * 4 + 3;
     d += `M${x.toFixed(1)} ${y.toFixed(1)} q${(dx * 0.4).toFixed(1)} ${(dy * 0.8).toFixed(1)} ${dx.toFixed(1)} ${dy.toFixed(1)} `;
   }
   return d;
 }
 
-const BODY_TUFTS = tufts(120, 138, 84, 100, 64, 14, 7);
-const BODY_TUFTS_IN = tufts(120, 138, 80, 96, 52, 10, 21);
+const BODY_TUFTS = tufts(120, 152, 104, 80, 72, 14, 7);
+const BODY_TUFTS_IN = tufts(120, 152, 100, 76, 60, 10, 21);
 const STRANDS = strands(5);
 const ARM_TUFTS = (() => {
   const r = rng(3);
   let d = "";
-  for (let y = 0; y < 42; y += 7) {
+  for (let y = 4; y < 60; y += 7) {
     for (const side of [-1, 1]) {
-      const x = side * 17;
-      const l = 6 + r() * 5;
+      const x = side * 14;
+      const l = 5 + r() * 4;
       d += `M${x} ${y - 4} Q${x + side * l} ${y + 1} ${x + side * (l - 2)} ${y + 7} L${x} ${y + 6} Z `;
     }
   }
   return d;
 })();
 
-function Arm({ x, angle, wave, u }: { x: number; angle: number; wave: boolean; u: (n: string) => string }) {
+function Arm({ x, angle, wave, hidden, holding, u }: { x: number; angle: number; wave: boolean; hidden: boolean; holding: boolean; u: (n: string) => string }) {
   return (
-    <g transform={`translate(${x} 156)`}>
-      <g className="mascot-arm" style={{ transform: `rotate(${angle}deg)` }}>
+    <g transform={`translate(${x} 150)`}>
+      <g className="mascot-arm" style={{ transform: `rotate(${angle}deg)`, opacity: hidden ? 0 : 1 }}>
         <g className={wave ? "mascot-wave" : undefined}>
-          <path d={ARM_TUFTS} fill="#9a55e6" />
-          <path d={ARM} fill={`url(#${u("fur")})`} filter={`url(#${u("fuzz")})`} />
-          {/* mitten paw with three plump fingers */}
-          <ellipse cx="0" cy="52" rx="21" ry="17" fill={`url(#${u("paw")})`} />
-          {[-12, 0, 12].map((fx) => (
-            <g key={fx}>
-              <ellipse cx={fx} cy={fx === 0 ? 66 : 63} rx="8" ry="8.5" fill={`url(#${u("paw")})`} stroke="#6c2bc4" strokeOpacity="0.45" strokeWidth="1.4" />
-              <ellipse cx={fx - 2} cy={fx === 0 ? 63 : 60} rx="3" ry="2.2" fill="#fff" opacity="0.4" />
+          {holding && (
+            // A CV held upright, so counter-rotate it against the arm.
+            <g className="mascot-cv" transform={`translate(0 76) rotate(${-angle - 8})`}>
+              <rect x="-15" y="-40" width="30" height="38" rx="3" fill="#fbfaff" stroke="#c9c2e8" strokeWidth="1" />
+              <rect x="-10" y="-34" width="10" height="10" rx="2" fill="#c7a6ff" />
+              <g stroke="#b9b2d6" strokeWidth="2" strokeLinecap="round">
+                <path d="M3 -32 h7" />
+                <path d="M3 -27 h5" />
+                <path d="M-10 -19 h20" />
+                <path d="M-10 -14 h16" />
+                <path d="M-10 -9 h18" />
+              </g>
             </g>
-          ))}
+          )}
+          <path d={ARM_TUFTS} fill="#9a55e6" />
+          <path d={ARM} fill={`url(#${u("paw")})`} filter={`url(#${u("fuzz")})`} />
+          <g stroke="#6c2bc4" strokeOpacity="0.5" strokeWidth="1.8" strokeLinecap="round" fill="none">
+            <path d="M-5 76 q-0.5 5 -1 9" />
+            <path d="M5 76 q0.5 5 1 9" />
+          </g>
+          <ellipse cx="-5" cy="68" rx="5" ry="3" fill="#fff" opacity="0.3" />
         </g>
       </g>
     </g>
   );
 }
-
-type Mood = "smile" | "happy" | "joy" | "curious";
-const MOOD: Record<MascotPose, Mood> = {
-  idle: "smile",
-  wave: "happy",
-  cheer: "joy",
-  "point-left": "curious",
-  "point-right": "curious",
-  "point-up": "curious",
-  "point-down": "curious",
-};
 
 function Eye({ cx, cy, gx, gy, mood, u }: { cx: number; cy: number; gx: number; gy: number; mood: Mood; u: (n: string) => string }) {
   // Joy squeezes the eyes shut into happy arcs.
@@ -132,8 +147,9 @@ function Eye({ cx, cy, gx, gy, mood, u }: { cx: number; cy: number; gx: number; 
     return <path d={`M${cx - 16} ${cy + 4} Q${cx} ${cy - 16} ${cx + 16} ${cy + 4}`} stroke="#2a0b55" strokeWidth="6" strokeLinecap="round" fill="none" />;
   }
   const clip = u(`eye${cx}`);
-  // A relaxed upper lid hides the top of the eye so it never reads as a stare.
-  const lid = mood === "curious" ? cy - 30 : cy - 22;
+  // A relaxed upper lid hides the top of the eye so it never reads as a stare; sad droops it.
+  const lid = mood === "curious" ? cy - 30 : mood === "sad" ? cy - 12 : cy - 22;
+  const tilt = mood === "sad" ? (cx < 120 ? -8 : 8) : 0;
   return (
     <g className="mascot-eye" style={{ transformOrigin: `${cx}px ${cy}px` }}>
       <ellipse cx={cx} cy={cy + 3} rx="25" ry="26" fill="#5a1fae" opacity="0.35" />
@@ -150,13 +166,10 @@ function Eye({ cx, cy, gx, gy, mood, u }: { cx: number; cy: number; gx: number; 
             <circle cx={cx - 5} cy={cy + 9} r="2.8" fill="#fff" opacity="0.9" />
           </g>
         </g>
-        <path
-          className="mascot-lid"
-          d={`M${cx - 30} ${lid - 20} H${cx + 30} V${lid} Q${cx} ${lid + 9} ${cx - 30} ${lid} Z`}
-          fill={`url(#${u("fur")})`}
-          style={{ transition: "d .3s" }}
-        />
-        <path d={`M${cx - 30} ${lid} Q${cx} ${lid + 9} ${cx + 30} ${lid}`} stroke="#5a1fae" strokeWidth="2.2" fill="none" />
+        <g style={{ transform: `rotate(${tilt}deg)`, transformOrigin: `${cx}px ${cy}px`, transition: "transform .3s" }}>
+          <path d={`M${cx - 30} ${lid - 24} H${cx + 30} V${lid} Q${cx} ${lid + 9} ${cx - 30} ${lid} Z`} fill={`url(#${u("fur")})`} />
+          <path d={`M${cx - 30} ${lid} Q${cx} ${lid + 9} ${cx + 30} ${lid}`} stroke="#5a1fae" strokeWidth="2.2" fill="none" />
+        </g>
       </g>
     </g>
   );
@@ -164,13 +177,19 @@ function Eye({ cx, cy, gx, gy, mood, u }: { cx: number; cy: number; gx: number; 
 
 function Mouth({ mood, u }: { mood: Mood; u: (n: string) => string }) {
   const lip = "#5a1fae";
-  if (mood === "smile") {
+  if (mood === "smile" || mood === "shy") {
     return (
       <g>
-        <path d="M112.5 157.6 h7 v6 a2.5 2.5 0 0 1 -2.5 2.5 h-2 a2.5 2.5 0 0 1 -2.5 -2.5 Z M120.5 157.6 h7 v6 a2.5 2.5 0 0 1 -2.5 2.5 h-2 a2.5 2.5 0 0 1 -2.5 -2.5 Z" fill="#fffaf0" />
+        <path
+          d="M112.5 157.6 h7 v6 a2.5 2.5 0 0 1 -2.5 2.5 h-2 a2.5 2.5 0 0 1 -2.5 -2.5 Z M120.5 157.6 h7 v6 a2.5 2.5 0 0 1 -2.5 2.5 h-2 a2.5 2.5 0 0 1 -2.5 -2.5 Z"
+          fill="#fffaf0"
+        />
         <path d="M100 150 Q120 168 140 150" stroke={lip} strokeWidth="4.5" strokeLinecap="round" fill="none" />
       </g>
     );
+  }
+  if (mood === "sad") {
+    return <path d="M104 162 Q120 150 136 162" stroke={lip} strokeWidth="4.5" strokeLinecap="round" fill="none" />;
   }
   if (mood === "curious") {
     return (
@@ -201,27 +220,58 @@ function Mouth({ mood, u }: { mood: Mood; u: (n: string) => string }) {
 
 function Brows({ mood }: { mood: Mood }) {
   const up = mood === "curious" || mood === "joy" ? -6 : 0;
+  const sad = mood === "sad";
   return (
     <g className="mascot-brows" stroke="#5a1fae" strokeWidth="4.5" strokeLinecap="round" fill="none" style={{ transform: `translateY(${up}px)` }}>
-      <path d="M80 70 Q90 64 102 68" />
-      <path d="M138 68 Q150 64 160 70" />
+      <path d={sad ? "M74 70 Q86 70 96 62" : "M74 70 Q84 64 96 68"} />
+      <path d={sad ? "M144 62 Q154 70 166 70" : "M144 68 Q156 64 166 70"} />
     </g>
   );
 }
 
-export function Mascot({ size = 160, pose = "idle", className }: { size?: number; pose?: MascotPose; className?: string }) {
+/** Paws that come up over the eyes for the "shy" pose. */
+function CoverPaws({ show, u }: { show: boolean; u: (n: string) => string }) {
+  return (
+    <g className="mascot-cover" style={{ transform: `translateY(${show ? 0 : 90}px)`, opacity: show ? 1 : 0 }}>
+      {[88, 152].map((cx) => (
+        // Mitten paw tilted toward the middle of the face, with three plump fingers on top.
+        <g key={cx} transform={`rotate(${cx < 120 ? 12 : -12} ${cx} 110)`}>
+          {[-14, 0, 14].map((d) => (
+            <ellipse key={d} cx={cx + d} cy={d === 0 ? 84 : 88} rx="9.5" ry="11" fill={`url(#${u("toe")})`} stroke="#7a32c8" strokeOpacity="0.55" strokeWidth="1.6" />
+          ))}
+          <ellipse cx={cx} cy={110} rx="27" ry="23" fill={`url(#${u("toe")})`} stroke="#7a32c8" strokeOpacity="0.55" strokeWidth="1.6" />
+          <ellipse cx={cx - 8} cy={100} rx="8" ry="4.5" fill="#fff" opacity="0.35" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+export function Mascot({
+  size = 160,
+  pose = "idle",
+  look,
+  className,
+}: {
+  size?: number;
+  pose?: MascotPose;
+  /** Override the gaze, each axis from -1 to 1 (e.g. follow a caret). */
+  look?: [number, number];
+  className?: string;
+}) {
   const uid = useId().replace(/:/g, "");
   const u = (n: string) => `${n}-${uid}`;
   const [la, ra] = ARMS[pose];
-  const [gx, gy] = GAZE[pose];
+  const [gx, gy] = look || GAZE[pose];
   const mood = MOOD[pose];
+  const shy = pose === "shy";
 
   return (
     <svg
       className={`mascot pose-${pose} ${className || ""}`}
       width={size}
-      height={size * (290 / 308)}
-      viewBox="-34 -6 308 290"
+      height={size * (262 / 300)}
+      viewBox="-30 -4 300 262"
       role="img"
       aria-label="Jahit, maskot CV Tailor"
     >
@@ -231,7 +281,7 @@ export function Mascot({ size = 160, pose = "idle", className }: { size?: number
           <stop offset="0.45" stopColor="#b06cf2" />
           <stop offset="1" stopColor="#6c2bc4" />
         </radialGradient>
-        <radialGradient id={u("furU")} gradientUnits="userSpaceOnUse" cx="100" cy="80" r="190">
+        <radialGradient id={u("furU")} gradientUnits="userSpaceOnUse" cx="100" cy="100" r="200">
           <stop offset="0" stopColor="#d49cff" />
           <stop offset="0.45" stopColor="#a35fec" />
           <stop offset="1" stopColor="#5a1fae" />
@@ -261,7 +311,15 @@ export function Mascot({ size = 160, pose = "idle", className }: { size?: number
           <stop offset="0" stopColor="#3f0a2e" />
           <stop offset="1" stopColor="#7d1747" />
         </linearGradient>
-        <radialGradient id={u("rim")} cx="0.5" cy="0.38" r="0.62">
+        <linearGradient id={u("tie")} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#5b8cff" />
+          <stop offset="1" stopColor="#2f55d4" />
+        </linearGradient>
+        <linearGradient id={u("cap")} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3a3566" />
+          <stop offset="1" stopColor="#1b1838" />
+        </linearGradient>
+        <radialGradient id={u("rim")} cx="0.5" cy="0.4" r="0.62">
           <stop offset="0.62" stopColor="#1a0640" stopOpacity="0" />
           <stop offset="1" stopColor="#1a0640" stopOpacity="0.45" />
         </radialGradient>
@@ -280,61 +338,84 @@ export function Mascot({ size = 160, pose = "idle", className }: { size?: number
         </filter>
       </defs>
 
-      <ellipse cx="120" cy="256" rx="82" ry="9" fill="#05030f" opacity="0.4" />
+      <ellipse cx="120" cy="250" rx="100" ry="9" fill="#05030f" opacity="0.4" />
 
       <g className="mascot-bob">
         <g className="mascot-breathe">
+          {/* arms sit behind the body, so only the paws and forearms show */}
+          <Arm x={50} angle={la} wave={false} hidden={shy} holding={la <= 30 && !shy} u={u} />
+          <Arm x={190} angle={ra} wave={pose === "wave"} hidden={shy} holding={false} u={u} />
+
           {/* pink horns */}
           {[1, -1].map((s) => (
             <g key={s} transform={s === -1 ? "translate(240 0) scale(-1 1)" : undefined}>
-              <path d="M80 66 C62 54 54 32 64 8 C68 6 71 8 71 11 C71 30 86 44 102 52 Z" fill={`url(#${u("horn")})`} />
-              <g stroke="#c94f98" strokeWidth="2" strokeLinecap="round" opacity="0.35" fill="none">
-                <path d="M63 26 q5 3 9 0" />
-                <path d="M65 38 q6 3 11 0" />
-                <path d="M71 50 q6 2 11 -1" />
+              <g transform="translate(-28 34)">
+                <path d="M80 66 C62 54 54 32 64 8 C68 6 71 8 71 11 C71 30 86 44 102 52 Z" fill={`url(#${u("horn")})`} />
+                <g stroke="#c94f98" strokeWidth="2" strokeLinecap="round" opacity="0.35" fill="none">
+                  <path d="M63 26 q5 3 9 0" />
+                  <path d="M65 38 q6 3 11 0" />
+                  <path d="M71 50 q6 2 11 -1" />
+                </g>
               </g>
             </g>
           ))}
 
           {/* feet with little claws */}
-          {[86, 154].map((x) => (
+          {[80, 160].map((x) => (
             <g key={x}>
-              <ellipse cx={x} cy="238" rx="30" ry="16" fill={`url(#${u("fur")})`} filter={`url(#${u("fuzz")})`} />
+              <ellipse cx={x} cy="232" rx="30" ry="15" fill={`url(#${u("fur")})`} filter={`url(#${u("fuzz")})`} />
               {[-14, 0, 14].map((d) => (
                 <g key={d}>
-                  <ellipse cx={x + d} cy="248" rx="7" ry="5.5" fill={`url(#${u("toe")})`} />
-                  <path d={`M${x + d - 2.5} 252 L${x + d} 258 L${x + d + 2.5} 252 Z`} fill="#fff4e0" />
+                  <ellipse cx={x + d} cy="242" rx="7" ry="5.5" fill={`url(#${u("toe")})`} />
+                  <path d={`M${x + d - 2.5} 246 L${x + d} 252 L${x + d + 2.5} 246 Z`} fill="#fff4e0" />
                 </g>
               ))}
             </g>
           ))}
 
-          {/* furry body: two rings of tufts, the body, then the tuft on top */}
+          {/* furry body: two rings of tufts under a fuzzy fill */}
           <path d={BODY_TUFTS} fill={`url(#${u("furU")})`} />
           <path d={BODY_TUFTS_IN} fill={`url(#${u("furU")})`} />
           <g filter={`url(#${u("fuzz")})`}>
             <path d={BODY} fill={`url(#${u("fur")})`} />
             <path d={BODY} fill={`url(#${u("rim")})`} />
-            <path d="M98 44 Q96 14 112 28 Q116 4 126 26 Q140 8 140 32 Q152 22 146 46 Z" fill="#c78af7" />
           </g>
           <g clipPath={`url(#${u("bodyclip")})`}>
-            <rect x="32" y="34" width="176" height="208" filter={`url(#${u("grain")})`} opacity="0.16" />
+            <rect x="12" y="66" width="216" height="170" filter={`url(#${u("grain")})`} opacity="0.16" />
           </g>
           <path d={STRANDS} stroke="#f0d4ff" strokeOpacity="0.22" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-          <ellipse cx="96" cy="70" rx="44" ry="22" fill="#fff" opacity="0.12" />
+          <ellipse cx="92" cy="96" rx="52" ry="20" fill="#fff" opacity="0.12" />
 
-          <g className="mascot-face">
-            <ellipse cx="70" cy="146" rx="10" ry="6" fill="#ff7ab6" opacity="0.4" />
-            <ellipse cx="170" cy="146" rx="10" ry="6" fill="#ff7ab6" opacity="0.4" />
-            <Brows mood={mood} />
-            <Eye cx={94} cy={104} gx={gx} gy={gy} mood={mood} u={u} />
-            <Eye cx={146} cy={104} gx={gx} gy={gy} mood={mood} u={u} />
-            <Mouth mood={mood} u={u} />
+          {/* collar and tie: dressed for the interview */}
+          <g>
+            <path d="M96 200 L120 210 L108 222 Z" fill="#fbfaff" />
+            <path d="M144 200 L120 210 L132 222 Z" fill="#fbfaff" />
+            <path d="M114 208 L126 208 L124 216 L116 216 Z" fill="#2f55d4" />
+            <path d="M116 216 L124 216 L129 234 L120 242 L111 234 Z" fill={`url(#${u("tie")})`} />
+            <path d="M115 224 L127 219 M113 231 L128 225" stroke="#a9c2ff" strokeWidth="1.6" opacity="0.6" />
           </g>
 
-          {/* arms last so they read in front of the body */}
-          <Arm x={54} angle={la} wave={false} u={u} />
-          <Arm x={186} angle={ra} wave={pose === "wave"} u={u} />
+          <g className="mascot-face" transform="translate(0 26)">
+            <ellipse cx="62" cy="146" rx="10" ry="6" fill="#ff7ab6" opacity={shy ? 0.75 : 0.4} />
+            <ellipse cx="178" cy="146" rx="10" ry="6" fill="#ff7ab6" opacity={shy ? 0.75 : 0.4} />
+            <Brows mood={mood} />
+            <Eye cx={88} cy={104} gx={gx} gy={gy} mood={mood} u={u} />
+            <Eye cx={152} cy={104} gx={gx} gy={gy} mood={mood} u={u} />
+            <Mouth mood={mood} u={u} />
+            <CoverPaws show={shy} u={u} />
+          </g>
+
+          {/* graduation cap with a swinging tassel */}
+          <g className="mascot-cap">
+            <path d="M90 58 L150 58 L150 76 Q120 90 90 76 Z" fill={`url(#${u("cap")})`} />
+            <path d="M62 56 L120 34 L178 56 L120 78 Z" fill={`url(#${u("cap")})`} />
+            <path d="M62 56 L120 34 L178 56" stroke="#5b5694" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+            <circle cx="120" cy="56" r="3.5" fill="#f3c372" />
+            <g className="mascot-tassel">
+              <path d="M120 56 Q150 58 170 60 L170 84" stroke="#f3c372" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+              <path d="M165 82 h10 l2 14 h-14 Z" fill="#f3c372" />
+            </g>
+          </g>
         </g>
       </g>
     </svg>
