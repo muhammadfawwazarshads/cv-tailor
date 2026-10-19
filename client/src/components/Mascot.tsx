@@ -1,7 +1,7 @@
 import { useId } from "react";
 
 /**
- * "Jahit", the CV Tailor monster: a wide purple furball dressed for a job hunt (graduation cap,
+ * "Benang", the Jahit mascot: a wide purple furball dressed for a job hunt (graduation cap,
  * collar and tie, a CV in hand), with one expression per pose. Arms grow from behind the body so no
  * joint ever shows; "shy" brings both paws up over the eyes (used while a password is typed).
  * Pose and gaze changes animate via CSS transitions.
@@ -273,7 +273,7 @@ export function Mascot({
       height={size * (262 / 300)}
       viewBox="-30 -4 300 262"
       role="img"
-      aria-label="Jahit, maskot CV Tailor"
+      aria-label="Benang, maskot Jahit"
     >
       <defs>
         <radialGradient id={u("fur")} cx="0.4" cy="0.28" r="0.85">

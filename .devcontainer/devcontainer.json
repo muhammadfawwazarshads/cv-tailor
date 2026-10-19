@@ -1,5 +1,5 @@
 {
-  "name": "CV Tailor",
+  "name": "Jahit",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
   "hostRequirements": { "cpus": 2 },
   "containerEnv": {
@@ -10,7 +10,7 @@
   "postStartCommand": "nohup bash -c 'npm start > /tmp/cv-tailor.log 2>&1 &'",
   "forwardPorts": [3000],
   "portsAttributes": {
-    "3000": { "label": "CV Tailor", "onAutoForward": "openBrowser" }
+    "3000": { "label": "Jahit", "onAutoForward": "openBrowser" }
   },
   "customizations": {
     "codespaces": { "openFiles": ["README.md"] }

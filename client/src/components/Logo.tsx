@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-/** The app mark: Jahit's head (horns, eyes, grin) under a graduation cap, simplified to read at 24px. */
+/** The app mark: Benang's head (horns, eyes, grin) under a graduation cap, simplified to read at 24px. */
 export function LogoMark({ size = 32 }: { size?: number }) {
   const id = useId().replace(/:/g, "");
   return (

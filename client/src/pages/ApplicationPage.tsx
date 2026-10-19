@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Download, ExternalLink, FileCode2, ListChecks, MessageSquareQuote, Minus, ShieldOff, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, Check, Download, ExternalLink, FileCode2, ListChecks, MessageSquareQuote, Minus, PenLine, Scissors, ShieldOff, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, formatDate, STANDALONE, STATUS_LABELS, type Application, type CvDocument, type Version } from "../api";
@@ -339,7 +339,7 @@ function AnalysisTab({ app, onApp, onTailored }: { app: Application; onApp: (a: 
                 })
               }
             >
-              <Sparkles size={17} /> Buat CV
+              <Scissors size={17} /> Buat CV
             </button>
             <button
               className="btn"
@@ -485,7 +485,7 @@ function CvTab({
 
         <div className="card composer-mini">
           <h2 className="row" style={{ gap: 8 }}>
-            <Wand2 size={18} /> Minta perubahan
+            <PenLine size={18} /> Minta perubahan
           </h2>
           <textarea
             value={instruction}

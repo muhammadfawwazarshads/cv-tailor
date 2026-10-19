@@ -7,11 +7,12 @@ import {
   ChevronDown,
   ClipboardPaste,
   EyeOff,
+  FileText,
   Factory,
+  Megaphone,
   Minus,
   Search,
   SlidersHorizontal,
-  Sparkles,
   Target,
   Trash2,
   TriangleAlert,
@@ -20,6 +21,7 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Application, type LeadRow } from "../api";
+import { Mascot } from "../components/Mascot";
 import { Busy, ErrorBox, Field, Loading, Toast, useAction } from "../components/ui";
 
 const PREF_KEY = "cv-tailor:lead-preferences";
@@ -119,7 +121,7 @@ export function LeadsPage() {
   return (
     <>
       <section className="hero">
-        <Sparkles className="spark-ico" size={26} aria-hidden />
+        <Mascot size={96} pose="idle" className="hero-mascot" />
         <span className="eyebrow">Lowongan</span>
         <h1>Lowongan mana yang mau dinilai?</h1>
       </section>
@@ -249,8 +251,8 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
         <div className="starters" data-tour="starters">
           {STARTERS.map((st) => (
             <button key={st.title} type="button" className={`starter ${st.tone}`} onClick={pasteClipboard} title={st.text}>
+              <st.icon size={16} strokeWidth={1.8} aria-hidden />
               <b>{st.title}</b>
-              <i className="cube" aria-hidden />
             </button>
           ))}
         </div>
@@ -294,9 +296,9 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
 }
 
 const STARTERS = [
-  { title: "Tempel hasil pencarian Jobs", text: "Semua kartu di daftar ikut terbaca sebagai ringkasan.", tone: "a" },
-  { title: "Tempel satu lowongan lengkap", text: "Deskripsinya utuh, bisa langsung jadi lamaran.", tone: "b" },
-  { title: "Tempel postingan rekrutmen", text: "Postingan HR atau agensi di feed LinkedIn.", tone: "c" },
+  { title: "Tempel hasil pencarian Jobs", text: "Semua kartu di daftar ikut terbaca sebagai ringkasan.", tone: "a", icon: Search },
+  { title: "Tempel satu lowongan lengkap", text: "Deskripsinya utuh, bisa langsung jadi lamaran.", tone: "b", icon: FileText },
+  { title: "Tempel postingan rekrutmen", text: "Postingan HR atau agensi di feed LinkedIn.", tone: "c", icon: Megaphone },
 ];
 
 function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow; open: boolean; onToggle: () => void; onChange: (l: LeadRow) => void; onDelete: () => void }) {

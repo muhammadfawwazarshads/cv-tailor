@@ -25,7 +25,7 @@ export function AuthPage() {
     });
   }, []);
 
-  // A failed attempt: Jahit looks sad for a moment and the card gives a small shake.
+  // A failed attempt: Benang looks sad for a moment and the card gives a small shake.
   useEffect(() => {
     if (!error) return;
     setMood("sad");
@@ -47,7 +47,7 @@ export function AuthPage() {
     setUser(r.user);
   }
 
-  // Jahit reacts to the form: reads along while you type, covers its eyes for the password.
+  // Benang reacts to the form: reads along while you type, covers its eyes for the password.
   const typed = focus === "email" ? email : focus === "name" ? name : "";
   const pose: MascotPose =
     mood === "cheer" ? "cheer" : mood === "sad" ? "sad" : busy ? "point-up" : focus === "password" && !showPw ? "shy" : focus ? "idle" : "wave";

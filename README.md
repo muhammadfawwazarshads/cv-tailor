@@ -1,4 +1,4 @@
-# CV Tailor
+# Jahit
 
 [![CI](https://github.com/muhammadfawwazarshads/cv-tailor/actions/workflows/ci.yml/badge.svg)](https://github.com/muhammadfawwazarshads/cv-tailor/actions/workflows/ci.yml)
 

@@ -8,7 +8,7 @@ import { DemoConfirm, DemoCopy, DemoFlow, DemoForm, DemoPaste, DemoProvider, Dem
 /**
  * Guided product tour: a spotlight glides from one part of the app to the next while a card explains it.
  * Steps can switch pages; a step whose element is missing falls back to a centered card.
- * Jahit the mascot rides along in the card, pointing at the spotlight, and each step plays a short
+ * Benang the mascot rides along in the card, pointing at the spotlight, and each step plays a short
  * demo with example data so the flow makes sense before the user has data of their own.
  */
 type Step = { route?: string; target?: string; title: string; body: string; place?: "bottom" | "top" | "right" | "left"; demo?: ComponentType };

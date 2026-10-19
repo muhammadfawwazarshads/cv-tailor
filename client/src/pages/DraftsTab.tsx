@@ -1,4 +1,4 @@
-import { Check, Copy, Mail, RefreshCw, Sparkles } from "lucide-react";
+import { Check, Copy, Mail, PenLine, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { api, formatDate, type Application, type Draft } from "../api";
 import { Busy, ErrorBox, Field, useAction } from "../components/ui";
@@ -63,7 +63,7 @@ export function DraftsTab({ app, hasCv, onApp }: { app: Application; hasCv: bool
           </div>
           {!busy && (
             <button className="btn primary" onClick={generate}>
-              {draft ? <RefreshCw size={16} /> : <Sparkles size={16} />} {draft ? "Buat ulang" : "Buat draft"}
+              {draft ? <RefreshCw size={16} /> : <PenLine size={16} />} {draft ? "Buat ulang" : "Buat draft"}
             </button>
           )}
         </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Mascot, type MascotPose } from "./Mascot";
 
 /**
- * Short hello right after signing in: Jahit rises in and waves, the greeting fades up, and a stitch
+ * Short hello right after signing in: Benang rises in and waves, the greeting fades up, and a stitch
  * sews itself across as the progress line before the app is revealed. Click anywhere to skip.
  */
 export function Welcome({ name, onDone }: { name: string; onDone: () => void }) {

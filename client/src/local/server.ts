@@ -121,7 +121,7 @@ export function exportData(): string {
 
 export function importData(json: string) {
   const parsed = JSON.parse(json);
-  if (!parsed || !Array.isArray(parsed.applications)) throw new Error("File bukan cadangan CV Tailor.");
+  if (!parsed || !Array.isArray(parsed.applications)) throw new Error("File bukan cadangan Jahit.");
   const current = load();
   const keys = new Map(current.providers.map((p) => [p.id, p.api_key]));
   parsed.providers = (parsed.providers ?? []).map((p: ProviderRec) => ({ ...p, api_key: p.api_key || keys.get(p.id) || "" }));

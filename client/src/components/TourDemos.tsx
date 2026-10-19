@@ -158,6 +158,7 @@ const LEADS = [
   { role: "IT Support", co: "PT Karir Cepat", fit: 38, size: "Tidak jelas", flag: "Minta biaya rekrutmen" },
 ];
 
+// Color stays a small status dot; numbers and bars are monochrome.
 function fitColor(v: number) {
   return v >= 80 ? "var(--lime)" : v >= 60 ? "var(--amber)" : "var(--rose)";
 }
@@ -172,7 +173,8 @@ export function DemoResults() {
           const v = Math.round(l.fit * p);
           return (
             <div key={l.co} className="td-row" style={{ opacity: prog(t, 200 + k * 450, 300), transform: `translateY(${(1 - prog(t, 200 + k * 450, 500)) * 10}px)` }}>
-              <div className="td-score" style={{ color: fitColor(l.fit) }}>
+              <div className="td-score">
+                <i className="td-dot" style={{ background: fitColor(l.fit) }} />
                 {v}
                 <small>%</small>
               </div>
@@ -189,7 +191,7 @@ export function DemoResults() {
                   {l.co} · {l.size}
                 </span>
                 <div className="td-meter">
-                  <i style={{ width: `${v}%`, background: fitColor(l.fit) }} />
+                  <i style={{ width: `${v}%` }} />
                 </div>
               </div>
             </div>

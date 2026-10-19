@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Gauge, Plus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, formatDate, STATUS_LABELS, STATUS_TONE, type Application, type ApplicationSummary } from "../api";
@@ -125,7 +125,7 @@ function NewApplication() {
         </div>
         {!busy && (
           <button className="btn primary" type="submit" disabled={jobDescription.trim().length < 80}>
-            <Sparkles size={17} /> Nilai kecocokan
+            <Gauge size={17} /> Nilai kecocokan
           </button>
         )}
       </div>
@@ -164,7 +164,7 @@ function Stats({ apps, onNew }: { apps: ApplicationSummary[]; onNew: () => void 
         </div>
       </div>
       <button className="btn primary wide" onClick={onNew}>
-        <Sparkles size={16} /> Nilai lowongan baru
+        <Plus size={16} /> Nilai lowongan baru
       </button>
     </section>
   );
