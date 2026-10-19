@@ -49,6 +49,7 @@ export function ApplicationsPage() {
           </span>
         </div>
       )}
+      {apps && apps.length > 0 && <Stats apps={apps} />}
       <NewApplication />
       {apps === null ? (
         <Loading />
@@ -124,5 +125,40 @@ function NewApplication() {
       <ErrorBox error={error} />
       {busy && <Busy>Membaca lowongan dan membandingkan dengan profilmu</Busy>}
     </form>
+  );
+}
+
+function Stats({ apps }: { apps: ApplicationSummary[] }) {
+  const scored = apps.filter((a) => a.fit_score != null);
+  const avg = scored.length ? Math.round(scored.reduce((n, a) => n + (a.fit_score ?? 0), 0) / scored.length) : null;
+  const sent = apps.filter((a) => ["applied", "interview", "offer", "rejected"].includes(a.status)).length;
+  const interviews = apps.filter((a) => a.status === "interview" || a.status === "offer").length;
+  const ready = apps.filter((a) => a.versions > 0).length;
+  return (
+    <div className="stat-strip">
+      <div className="big">
+        <span className="v iris">
+          {avg ?? "-"}
+          <small>%</small>
+        </span>
+        <span className="k">Rata-rata kecocokan</span>
+      </div>
+      <div>
+        <span className="v">{apps.length}</span>
+        <span className="k">Lowongan dinilai</span>
+      </div>
+      <div>
+        <span className="v">{ready}</span>
+        <span className="k">CV siap kirim</span>
+      </div>
+      <div>
+        <span className="v">{sent}</span>
+        <span className="k">Sudah dikirim</span>
+      </div>
+      <div>
+        <span className="v">{interviews}</span>
+        <span className="k">Sampai interview</span>
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  ArrowUp,
   Bookmark,
   BookmarkCheck,
   Check,
@@ -9,6 +10,7 @@ import {
   Factory,
   Minus,
   Search,
+  Target,
   Trash2,
   TriangleAlert,
   Undo2,
@@ -112,15 +114,11 @@ export function LeadsPage() {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Lowongan</h1>
-          <p>
-            Buka halaman lowongan atau postingan di LinkedIn, tekan Ctrl+A lalu Ctrl+C, dan tempel di sini. AI memisahkan tiap lowongan, menilai
-            perusahaannya, mencari tanda bahaya, dan mencocokkannya dengan profilmu.
-          </p>
-        </div>
-      </div>
+      <section className="hero">
+        <div className="orb" aria-hidden />
+        <h1>Lowongan mana yang layak kamu kejar?</h1>
+        <p>Tempel halaman LinkedIn (Ctrl+A, Ctrl+C). Tiap lowongan dinilai: perusahaannya, tanda bahayanya, dan kecocokannya dengan profilmu.</p>
+      </section>
       <PasteBox onAdded={added} />
       {notice && (
         <div className="alert info" style={{ marginBottom: 16 }}>
@@ -232,42 +230,63 @@ function PasteBox({ onAdded }: { onAdded: (r: { leads: LeadRow[]; found: number;
   }
 
   return (
-    <form className="composer stack" onSubmit={submit}>
-      <textarea
-        aria-label="Teks halaman lowongan"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Tempel di sini. Boleh satu halaman hasil pencarian berisi banyak lowongan, satu lowongan lengkap, atau postingan rekrutmen. Teks menu dan iklan akan diabaikan."
-      />
-      <div className="row" style={{ alignItems: "flex-end" }}>
-        <div className="grow" style={{ minWidth: 240 }}>
-          <Field label="Fokus pencarian" hint="Disimpan di browser ini dan dipakai setiap kali menilai.">
+    <>
+      <form className="composer chat" onSubmit={submit}>
+        <textarea
+          aria-label="Teks halaman lowongan"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Tempel halaman lowongan di sini..."
+        />
+        <div className="chat-bar">
+          <label className="focus-pill" title="Fokus pencarian, disimpan di browser ini dan dipakai setiap kali menilai">
+            <Target size={15} />
             <input
               type="text"
+              aria-label="Fokus pencarian"
               value={preferences}
               onChange={(e) => setPreferences(e.target.value)}
-              placeholder="Software engineer, DevOps, data, AI. Jabodetabek. Fresh grad sampai 2 tahun."
+              placeholder="Fokus: software engineer, DevOps, data. Jabodetabek."
             />
-          </Field>
-        </div>
-        {!busy && (
-          <>
-            {"clipboard" in navigator && (
-              <button className="btn" type="button" onClick={pasteClipboard}>
-                <ClipboardPaste size={17} /> Tempel
+          </label>
+          {!busy && (
+            <>
+              {"clipboard" in navigator && (
+                <button className="icon-btn" type="button" onClick={pasteClipboard} aria-label="Tempel dari clipboard" title="Tempel dari clipboard">
+                  <ClipboardPaste size={17} />
+                </button>
+              )}
+              <button className="send" type="submit" disabled={text.trim().length < 40} aria-label="Pilah lowongan" title="Pilah lowongan">
+                <ArrowUp size={18} strokeWidth={2.4} />
               </button>
-            )}
-            <button className="btn primary" type="submit" disabled={text.trim().length < 40}>
-              <Search size={17} /> Pilah lowongan
+            </>
+          )}
+        </div>
+        <ErrorBox error={error} />
+        {busy && <Busy>Memilah lowongan, menilai perusahaan, dan mencocokkan dengan profilmu</Busy>}
+      </form>
+      {!text && !busy && (
+        <div className="starters">
+          {STARTERS.map((st) => (
+            <button key={st.title} type="button" className={`starter ${st.tone}`} onClick={pasteClipboard}>
+              <span className="thumb" aria-hidden>
+                <i />
+              </span>
+              <b>{st.title}</b>
+              <span>{st.text}</span>
             </button>
-          </>
-        )}
-      </div>
-      <ErrorBox error={error} />
-      {busy && <Busy>Memilah lowongan, menilai perusahaan, dan mencocokkan dengan profilmu</Busy>}
-    </form>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
+
+const STARTERS = [
+  { title: "Hasil pencarian Jobs", text: "Semua kartu di daftar ikut terbaca sebagai ringkasan.", tone: "a" },
+  { title: "Satu lowongan lengkap", text: "Deskripsinya utuh, bisa langsung jadi lamaran.", tone: "b" },
+  { title: "Postingan rekrutmen", text: "Postingan HR atau agensi di feed LinkedIn.", tone: "c" },
+];
 
 function LeadCard({ lead, open, onToggle, onChange, onDelete }: { lead: LeadRow; open: boolean; onToggle: () => void; onChange: (l: LeadRow) => void; onDelete: () => void }) {
   const d = lead.data;
