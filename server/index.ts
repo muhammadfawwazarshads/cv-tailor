@@ -31,6 +31,8 @@ app.use((_req, res, next) => {
 app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   const origin = req.get("origin");
+  // Browsers mark requests from the page itself; this survives proxies that rewrite the Host header (Codespaces, Render).
+  if (req.get("sec-fetch-site") === "same-origin") return next();
   if (origin) {
     const host = new URL(origin).host;
     const sameHost = host === req.get("host") || host === req.get("x-forwarded-host");
